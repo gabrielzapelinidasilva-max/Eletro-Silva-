@@ -49,7 +49,6 @@ img { max-width: 100%; display: block; }
 .logo img { height: 58px; width: auto; display: block; }
 @media (max-width: 600px) { .logo img { height: 50px; } }
 .nav { display: flex; flex-wrap: nowrap; gap: 2px; }
-@media (min-width: 1181px) { .nav { background: none; animation: none; } }
 .nav a { color: #fff; text-decoration: none; padding: 8px 9px; border-radius: 8px; font-size: .88rem; font-weight: 600; white-space: nowrap; }
 .nav a:hover { background: rgba(255,255,255,.14); }
 .nav a.ativo { background: #fff; color: var(--marca); }
@@ -58,7 +57,7 @@ img { max-width: 100%; display: block; }
 @media (max-width: 1180px) {
   .menu-toggle { display: block; }
   .nav { display: none; position: absolute; top: 76px; left: 0; right: 0; flex-direction: column; padding: 8px 16px 16px; }
-  .nav.nav-aberto { display: flex; animation: descer .25s ease-out both, degrade 18s linear infinite; }
+  .nav.nav-aberto { display: flex; animation: descer .25s ease-out both, degrade 30s linear infinite; }
   .nav a { padding: 12px; font-size: 1rem; }
 }
 
@@ -229,13 +228,14 @@ img { max-width: 100%; display: block; }
 
 /* Animações */
 /* Degradê único e contínuo: cabeçalho, banners, faixas e rodapé compartilham o mesmo
-   fundo fixo na tela, então as cores fluem de uma área para outra sem emenda. */
+   fundo fixo na tela, e o componente Animacoes sincroniza as animações de todos eles,
+   então as cores fluem de uma área para outra sem emenda, em qualquer página. */
 .header, .hero, .page-header, .avalie-faixa, .footer, .nav {
   background-color: var(--marca);
-  background-image: linear-gradient(110deg, var(--marca-profundo) 0%, var(--marca) 25%, #1a6be0 50%, var(--marca) 75%, var(--marca-profundo) 100%);
+  background-image: linear-gradient(110deg, #0a3d8f 0%, var(--marca) 25%, #1257c2 50%, var(--marca) 75%, #0a3d8f 100%);
   background-size: 200% 100%;
   background-attachment: fixed;
-  animation: degrade 18s linear infinite;
+  animation: degrade 30s linear infinite;
 }
 @keyframes degrade { from { background-position: 0% 0; } to { background-position: 200% 0; } }
 @keyframes subir { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }

@@ -11,6 +11,18 @@ export default function Animacoes() {
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    // Coloca todas as animações do degradê no mesmo relógio, para que o cabeçalho
+    // (que permanece entre páginas) e o topo de cada página fiquem sempre alinhados.
+    const sincronizar = () => {
+      for (const a of document.getAnimations()) {
+        if ((a as CSSAnimation).animationName === "degrade") a.startTime = 0;
+      }
+    };
+    sincronizar();
+    const menu = document.getElementById("menu-principal");
+    const obsMenu = new MutationObserver(sincronizar);
+    if (menu) obsMenu.observe(menu, { attributes: true, attributeFilter: ["class"] });
     document.documentElement.classList.add("anim-pronto");
 
     const els = Array.from(document.querySelectorAll<HTMLElement>(ALVOS));
@@ -33,7 +45,10 @@ export default function Animacoes() {
       obs.observe(el);
     });
 
-    return () => obs.disconnect();
+    return () => {
+      obs.disconnect();
+      obsMenu.disconnect();
+    };
   }, [pathname]);
 
   return null;
