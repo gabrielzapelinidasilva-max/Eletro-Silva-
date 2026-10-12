@@ -15,7 +15,7 @@ export default function ConhecaALoja() {
         <div className="container estreito">
           <Video src={VIDEO_TOUR_LOJA} titulo="Tour pela loja" />
           <div className="botoes centro">
-            <a className="btn btn-primario" href={MAPS_LINK} target="_blank" rel="noopener">📍 Como chegar</a>
+            <a className="btn btn-primario" href={MAPS_LINK} target="_blank" rel="noopener">Como chegar</a>
           </div>
         </div>
       </section>

@@ -33,7 +33,7 @@ export default async function Avalie() {
 
         <div className="botoes centro">
           <a className="btn btn-primario btn-grande" href={GOOGLE_AVALIACAO} target="_blank" rel="noopener">
-            ⭐ Avaliar no Google
+            Avaliar no Google
           </a>
         </div>
         <p className="avalie-dica">Está no celular? É só tocar no botão acima.</p>

@@ -20,7 +20,7 @@ export default async function Ofertas() {
 
       <section className="secao">
         <div className="container">
-          <h2>🔥 Ofertas da Semana</h2>
+          <h2>Ofertas da Semana</h2>
           <p>Preços especiais por tempo limitado, enquanto durar o estoque!</p>
           {ofertas.length === 0 ? (
             <div className="card">
@@ -34,7 +34,10 @@ export default async function Ofertas() {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={o.imagem_url} alt={o.titulo} loading="lazy" />
                   ) : (
-                    <div className="produto-img-vazia" aria-hidden>🔥</div>
+                    <div className="produto-img-vazia" aria-hidden>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/logo-branco.webp" alt="" width={440} height={170} />
+                    </div>
                   )}
                   <h3>{o.titulo}</h3>
                   {o.descricao && <p>{o.descricao}</p>}
@@ -53,7 +56,7 @@ export default async function Ofertas() {
 
       <section className="secao secao-alt">
         <div className="container estreito">
-          <h2>🎁 Sorteios</h2>
+          <h2>Sorteios</h2>
           <p>
             Siga{" "}
             <a href={`https://instagram.com/${INSTAGRAM}`} target="_blank" rel="noopener">
@@ -75,7 +78,7 @@ export default async function Ofertas() {
           </div>
 
           <div className="botoes centro">
-            <WhatsAppButton texto={MSG.ofertas}>📲 Quero receber ofertas no WhatsApp</WhatsAppButton>
+            <WhatsAppButton texto={MSG.ofertas}>Quero receber ofertas no WhatsApp</WhatsAppButton>
           </div>
         </div>
       </section>

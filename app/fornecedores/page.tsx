@@ -15,7 +15,7 @@ export default function Fornecedores() {
       <section className="secao">
         <div className="container estreito">
           <div className="botoes centro">
-            <WhatsAppButton texto={MSG.fornecedor}>💼 Falar com Compras</WhatsAppButton>
+            <WhatsAppButton texto={MSG.fornecedor}>Falar com Compras</WhatsAppButton>
           </div>
           <h2 className="centro">Ou deixe seus dados</h2>
           <FormFornecedor />

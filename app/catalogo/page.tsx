@@ -20,7 +20,7 @@ export default async function Catalogo() {
           <nav className="categorias" aria-label="Categorias">
             {CATEGORIAS.map((c) => (
               <a key={c.slug} href={`#${c.slug}`} className="categoria-chip">
-                <span aria-hidden>{c.icone}</span> {c.nome}
+                {c.nome}
               </a>
             ))}
           </nav>
@@ -29,9 +29,7 @@ export default async function Catalogo() {
             const itens = produtos.filter((p) => p.categoria === c.slug);
             return (
               <div key={c.slug} id={c.slug} className="categoria-bloco">
-                <h2>
-                  <span aria-hidden>{c.icone}</span> {c.nome}
-                </h2>
+                <h2>{c.nome}</h2>
                 {itens.length === 0 ? (
                   <div className="card produto-vazio">
                     <p>Temos variedade de {c.nome.toLowerCase()} na loja. Fale com a gente e peça seu orçamento.</p>
@@ -47,7 +45,10 @@ export default async function Catalogo() {
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={p.imagem_url} alt={p.nome} loading="lazy" />
                         ) : (
-                          <div className="produto-img-vazia" aria-hidden>{c.icone}</div>
+                          <div className="produto-img-vazia" aria-hidden>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="/logo-branco.webp" alt="" width={440} height={170} />
+                          </div>
                         )}
                         <h3>{p.nome}</h3>
                         {p.descricao && <p>{p.descricao}</p>}
@@ -64,7 +65,7 @@ export default async function Catalogo() {
 
           <div className="card centro chamada">
             <p>Não encontrou o que procura? A loja tem muito mais.</p>
-            <WhatsAppButton texto={MSG.orcamento}>🟢 Fale no WhatsApp</WhatsAppButton>
+            <WhatsAppButton texto={MSG.orcamento}>Fale no WhatsApp</WhatsAppButton>
           </div>
         </div>
       </section>

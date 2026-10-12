@@ -4,11 +4,11 @@ import { EMAIL, ENDERECO, FIXO, FIXO_TEL, HORARIOS, MAPS_EMBED, MAPS_LINK, MSG, 
 export const metadata = { title: "Contato" };
 
 const CAIXAS = [
-  { icone: "🛒", titulo: "Vendas e orçamentos", texto: MSG.orcamento },
-  { icone: "👷", titulo: "Eletricistas", texto: MSG.eletricista },
-  { icone: "🔧", titulo: "Serviços elétricos", texto: MSG.servico },
-  { icone: "🔄", titulo: "Trocas e pós-venda", texto: MSG.posVenda },
-  { icone: "💼", titulo: "Fornecedores", texto: MSG.fornecedor },
+  { titulo: "Vendas e orçamentos", texto: MSG.orcamento },
+  { titulo: "Eletricistas", texto: MSG.eletricista },
+  { titulo: "Serviços elétricos", texto: MSG.servico },
+  { titulo: "Trocas e pós-venda", texto: MSG.posVenda },
+  { titulo: "Fornecedores", texto: MSG.fornecedor },
 ];
 
 export default function Contato() {
@@ -20,7 +20,6 @@ export default function Contato() {
           <div className="grid-caixas">
             {CAIXAS.map((c) => (
               <a key={c.titulo} className="card caixa-whats" href={wa(c.texto)} target="_blank" rel="noopener">
-                <span className="icone">{c.icone}</span>
                 <strong>{c.titulo}</strong>
                 <small>Abrir WhatsApp →</small>
               </a>
@@ -47,7 +46,7 @@ export default function Contato() {
             <h2>Endereço</h2>
             <p>{ENDERECO}</p>
             <p>
-              <a className="btn btn-primario" href={MAPS_LINK} target="_blank" rel="noopener">📍 Como chegar</a>
+              <a className="btn btn-primario" href={MAPS_LINK} target="_blank" rel="noopener">Como chegar</a>
             </p>
 
             <h2>Outros contatos</h2>

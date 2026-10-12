@@ -2,7 +2,6 @@ export default function Video({ src, titulo }: { src: string; titulo: string }) 
   if (!src) {
     return (
       <div className="video video-vazio" role="img" aria-label={`${titulo} (em breve)`}>
-        <span>🎬</span>
         <p>{titulo}: vídeo em breve</p>
       </div>
     );
