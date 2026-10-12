@@ -156,6 +156,16 @@ img { max-width: 100%; display: block; }
 
 .regulamento-texto { white-space: pre-wrap; max-height: 360px; overflow: auto; background: var(--fundo-alt); padding: 14px; border-radius: 10px; font-size: .95rem; }
 
+/* Sorteio */
+.sorteio-grid { display: flex; gap: 40px; align-items: flex-start; justify-content: center; }
+.sorteio-texto { flex: 1; max-width: 640px; min-width: 0; }
+.video-sorteio { flex-shrink: 0; width: 300px; border-radius: 22px; overflow: hidden; background: #000; border: 5px solid var(--marca); box-shadow: 0 14px 32px rgba(0, 55, 127, .22); }
+.video-sorteio video { display: block; width: 100%; aspect-ratio: 9 / 16; object-fit: cover; }
+@media (max-width: 800px) {
+  .sorteio-grid { flex-direction: column; align-items: center; }
+  .video-sorteio { width: min(320px, 100%); }
+}
+
 /* Contato */
 .caixa-whats { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; text-decoration: none; color: var(--azul); transition: border-color .2s, transform .1s; }
 .caixa-whats:hover { border-color: var(--verde); transform: translateY(-2px); }

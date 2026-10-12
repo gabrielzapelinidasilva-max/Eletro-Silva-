@@ -25,6 +25,8 @@ export const HORARIOS = [
 // Se ficarem vazios, o site mostra um espaço reservado.
 export const VIDEO_QUEM_SOMOS = "";
 export const VIDEO_TOUR_LOJA = "";
+// Vídeo do sorteio: arquivo "sorteio.mp4" na pasta "imagens" do Storage da Supabase.
+export const VIDEO_SORTEIO = "https://xilchfpxkvdwrhxhqplw.supabase.co/storage/v1/object/public/imagens/sorteio.mp4";
 
 export function wa(texto: string) {
   return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto)}`;

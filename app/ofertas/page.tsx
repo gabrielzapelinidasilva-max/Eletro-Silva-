@@ -1,7 +1,8 @@
 import PageHeader from "@/components/PageHeader";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { brl, getOfertas, getSorteioAtual } from "@/lib/data";
-import { INSTAGRAM, MSG } from "@/lib/site";
+import VideoSorteio from "@/components/VideoSorteio";
+import { INSTAGRAM, MSG, VIDEO_SORTEIO } from "@/lib/site";
 
 export const metadata = { title: "Ofertas e Sorteios" };
 export const revalidate = 300;
@@ -55,30 +56,33 @@ export default async function Ofertas() {
       </section>
 
       <section className="secao secao-alt">
-        <div className="container estreito">
-          <h2>Sorteios</h2>
-          <p>
-            Siga{" "}
-            <a href={`https://instagram.com/${INSTAGRAM}`} target="_blank" rel="noopener">
-              <strong>@{INSTAGRAM}</strong>
-            </a>{" "}
-            no Instagram para participar e não perder nenhum.
-          </p>
+        <div className="container sorteio-grid">
+          <VideoSorteio src={VIDEO_SORTEIO} capa="/videos/sorteio-capa.webp" />
+          <div className="sorteio-texto">
+            <h2>Sorteios</h2>
+            <p>
+              Siga{" "}
+              <a href={`https://instagram.com/${INSTAGRAM}`} target="_blank" rel="noopener">
+                <strong>@{INSTAGRAM}</strong>
+              </a>{" "}
+              no Instagram para participar e não perder nenhum.
+            </p>
 
-          <div className="card regulamento">
-            <h3>Regulamento do sorteio atual</h3>
-            {sorteio ? (
-              <>
-                <p><strong>{sorteio.titulo}</strong>{sorteio.data_sorteio && ` · Sorteio em ${dataBR(sorteio.data_sorteio)}`}</p>
-                <div className="regulamento-texto">{sorteio.regulamento}</div>
-              </>
-            ) : (
-              <p>Nenhum sorteio em andamento no momento. Fique de olho no nosso Instagram!</p>
-            )}
-          </div>
+            <div className="card regulamento">
+              <h3>Regulamento do sorteio atual</h3>
+              {sorteio ? (
+                <>
+                  <p><strong>{sorteio.titulo}</strong>{sorteio.data_sorteio && ` · Sorteio em ${dataBR(sorteio.data_sorteio)}`}</p>
+                  <div className="regulamento-texto">{sorteio.regulamento}</div>
+                </>
+              ) : (
+                <p>Nenhum sorteio em andamento no momento. Fique de olho no nosso Instagram!</p>
+              )}
+            </div>
 
-          <div className="botoes centro">
-            <WhatsAppButton texto={MSG.ofertas}>Quero receber ofertas no WhatsApp</WhatsAppButton>
+            <div className="botoes centro">
+              <WhatsAppButton texto={MSG.ofertas}>Quero receber ofertas no WhatsApp</WhatsAppButton>
+            </div>
           </div>
         </div>
       </section>
