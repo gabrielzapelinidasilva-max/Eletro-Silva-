@@ -154,7 +154,7 @@ img { max-width: 100%; display: block; }
 .preco strong { color: #c0392b; font-size: 1.35rem; }
 .validade { font-size: .85rem !important; }
 
-.regulamento-texto { white-space: pre-wrap; max-height: 360px; overflow: auto; background: var(--fundo-alt); padding: 14px; border-radius: 10px; font-size: .95rem; }
+.regulamento-texto { white-space: pre-wrap; background: var(--fundo-alt); padding: 14px; border-radius: 10px; font-size: .95rem; }
 
 /* Sorteio */
 .sorteio-grid { display: flex; gap: 40px; align-items: flex-start; justify-content: center; }
