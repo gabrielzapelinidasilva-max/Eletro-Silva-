@@ -30,7 +30,7 @@ export default function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className={pathname === item.href ? "ativo" : undefined}
+              className={[item.href === "/avalie" ? "nav-avalie" : "", pathname === item.href ? "ativo" : ""].join(" ").trim() || undefined}
               onClick={() => setAberto(false)}
             >
               {item.label}

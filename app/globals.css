@@ -4,6 +4,7 @@
   --marca-escuro: #00377f;
   --marca-profundo: #00285e;
   --marca-claro: #e6eefa;
+  --destaque: #ffc414;
   --azul: var(--marca);
   --verde: #25d366;
   --verde-escuro: #128c4b;
@@ -47,13 +48,13 @@ img { max-width: 100%; display: block; }
 .logo { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; }
 .logo img { height: 58px; width: auto; display: block; }
 @media (max-width: 600px) { .logo img { height: 50px; } }
-.nav { display: flex; flex-wrap: wrap; gap: 4px; }
-.nav a { color: #fff; text-decoration: none; padding: 8px 10px; border-radius: 8px; font-size: .92rem; font-weight: 600; }
+.nav { display: flex; flex-wrap: nowrap; gap: 2px; }
+.nav a { color: #fff; text-decoration: none; padding: 8px 9px; border-radius: 8px; font-size: .88rem; font-weight: 600; white-space: nowrap; }
 .nav a:hover { background: rgba(255,255,255,.14); }
 .nav a.ativo { background: #fff; color: var(--marca); }
 .menu-toggle { display: none; background: none; border: 0; color: #fff; font-size: 1.6rem; cursor: pointer; padding: 6px 10px; }
 
-@media (max-width: 1020px) {
+@media (max-width: 1180px) {
   .menu-toggle { display: block; }
   .nav { display: none; position: absolute; top: 76px; left: 0; right: 0; background: var(--marca); flex-direction: column; padding: 8px 16px 16px; }
   .nav.nav-aberto { display: flex; }
@@ -176,3 +177,33 @@ img { max-width: 100%; display: block; }
   background: var(--verde); color: #fff; display: grid; place-items: center; box-shadow: 0 6px 18px rgba(0,0,0,.25);
 }
 .whats-float:hover { background: var(--verde-escuro); }
+
+/* Nos Avalie */
+.nav a.nav-avalie { background: var(--destaque); color: var(--marca-profundo); }
+.nav a.nav-avalie.ativo { background: #fff; color: var(--marca); }
+.avalie { border-top: 8px solid var(--destaque); padding-top: 48px; text-align: center; }
+.avalie-titulo, .avalie-tag, .avalie-faixa {
+  font-family: "Barlow Condensed", "Montserrat Variable", sans-serif; font-style: italic; font-weight: 800; text-transform: uppercase;
+}
+.avalie-titulo { color: var(--marca); font-size: clamp(3rem, 12vw, 5.5rem); line-height: 1; margin: 0; letter-spacing: 0; }
+.avalie-tag {
+  display: inline-block; margin: 14px 0 0; padding: 6px 24px; background: var(--destaque); color: var(--marca);
+  font-size: clamp(1.6rem, 6vw, 2.6rem); line-height: 1.2; border-radius: 8px; transform: rotate(-1.5deg);
+}
+.avalie-corpo { display: flex; align-items: center; justify-content: center; gap: 40px; margin: 44px 0 8px; text-align: left; }
+.avalie-qr { border: 5px solid var(--marca); border-radius: 22px; padding: 28px 28px 18px; background: #fff; flex-shrink: 0; }
+.avalie-qr-img svg { width: 240px; height: 240px; display: block; }
+.avalie-estrelas { color: var(--destaque); font-size: 2rem; letter-spacing: 6px; text-align: center; margin-top: 10px; }
+.avalie-passos { list-style: none; counter-reset: passo; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 22px; max-width: 300px; }
+.avalie-passos li { counter-increment: passo; display: flex; align-items: center; gap: 16px; font-weight: 600; font-size: 1.1rem; color: var(--marca-profundo); }
+.avalie-passos li::before {
+  content: counter(passo); flex-shrink: 0; width: 50px; height: 50px; border-radius: 50%; background: var(--marca); color: #fff;
+  display: grid; place-items: center; font-family: "Barlow Condensed", sans-serif; font-style: italic; font-weight: 800; font-size: 1.6rem;
+}
+.btn-grande { font-size: 1.15rem; padding: 16px 32px; }
+.avalie-dica { color: var(--texto-suave); margin: 0 0 48px; }
+.avalie-faixa { background: var(--marca); color: #fff; font-size: clamp(1.5rem, 5vw, 2.2rem); padding: 22px 16px; }
+@media (max-width: 700px) {
+  .avalie-corpo { flex-direction: column; gap: 28px; }
+  .avalie-qr-img svg { width: 200px; height: 200px; }
+}

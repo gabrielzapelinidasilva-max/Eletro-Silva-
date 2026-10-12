@@ -2,6 +2,7 @@ export const WHATSAPP = "5548998149358";
 export const WHATSAPP_LABEL = "(48) 99814-9358";
 export const FIXO = "(48) 3658-6692";
 export const FIXO_TEL = "+554836586692";
+export const GOOGLE_AVALIACAO = "https://search.google.com/local/writereview?placeid=ChIJx2_17-URIZURMFZQHQfGW7s";
 export const EMAIL = "eletrosilvabn@gmail.com";
 export const INSTAGRAM = "eletrosilvamateriais";
 export const FACEBOOK_SERVICOS = "https://facebook.com/eletrosilvaoficial";
@@ -47,6 +48,7 @@ export const MENU = [
   { href: "/ofertas", label: "Ofertas e Sorteios" },
   { href: "/fornecedores", label: "Fornecedores" },
   { href: "/contato", label: "Contato" },
+  { href: "/avalie", label: "Nos Avalie" },
 ];
 
 export const CATEGORIAS = [
