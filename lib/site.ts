@@ -52,11 +52,11 @@ export const MENU = [
 ];
 
 export const CATEGORIAS = [
-  { slug: "fios-e-cabos", nome: "Fios e cabos", icone: "🧵" },
-  { slug: "disjuntores-e-quadros", nome: "Disjuntores e quadros", icone: "🔌" },
-  { slug: "tomadas-e-interruptores", nome: "Tomadas e interruptores", icone: "🔘" },
-  { slug: "iluminacao-e-led", nome: "Iluminação e LED", icone: "💡" },
-  { slug: "eletrodutos-e-conexoes", nome: "Eletrodutos e conexões", icone: "🪈" },
-  { slug: "ferramentas-e-epis", nome: "Ferramentas e EPIs", icone: "🧰" },
-  { slug: "ventiladores-e-chuveiros", nome: "Ventiladores e chuveiros", icone: "🌀" },
+  { slug: "fios-e-cabos", nome: "Fios e cabos" },
+  { slug: "disjuntores-e-quadros", nome: "Disjuntores e quadros" },
+  { slug: "tomadas-e-interruptores", nome: "Tomadas e interruptores" },
+  { slug: "iluminacao-e-led", nome: "Iluminação e LED" },
+  { slug: "eletrodutos-e-conexoes", nome: "Eletrodutos e conexões" },
+  { slug: "ferramentas-e-epis", nome: "Ferramentas e EPIs" },
+  { slug: "ventiladores-e-chuveiros", nome: "Ventiladores e chuveiros" },
 ];

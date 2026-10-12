@@ -1,4 +1,5 @@
 import QRCode from "qrcode";
+import { Star } from "lucide-react";
 import "@fontsource/barlow-condensed/800-italic.css";
 import { GOOGLE_AVALIACAO } from "@/lib/site";
 
@@ -22,7 +23,11 @@ export default async function Avalie() {
         <div className="avalie-corpo">
           <div className="avalie-qr">
             <div className="avalie-qr-img" dangerouslySetInnerHTML={{ __html: qr }} />
-            <div className="avalie-estrelas" aria-label="5 estrelas">★★★★★</div>
+            <div className="avalie-estrelas" aria-label="5 estrelas">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Star key={i} size={30} fill="currentColor" strokeWidth={0} aria-hidden />
+              ))}
+            </div>
           </div>
           <ol className="avalie-passos">
             {PASSOS.map((p) => (

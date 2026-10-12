@@ -1,15 +1,16 @@
 import PageHeader from "@/components/PageHeader";
+import { Building2, Home, Snowflake, Tractor, Wrench } from "lucide-react";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { FACEBOOK_SERVICOS, MSG } from "@/lib/site";
 
 export const metadata = { title: "Serviços" };
 
 const SERVICOS = [
-  { icone: "🏠", titulo: "Instalações residenciais" },
-  { icone: "🏢", titulo: "Instalações comerciais" },
-  { icone: "🌾", titulo: "Instalações rurais" },
-  { icone: "🛠️", titulo: "Manutenção elétrica" },
-  { icone: "❄️", titulo: "Climatização" },
+  { Icone: Home, titulo: "Instalações residenciais" },
+  { Icone: Building2, titulo: "Instalações comerciais" },
+  { Icone: Tractor, titulo: "Instalações rurais" },
+  { Icone: Wrench, titulo: "Manutenção elétrica" },
+  { Icone: Snowflake, titulo: "Climatização" },
 ];
 
 export default function Servicos() {
@@ -22,15 +23,17 @@ export default function Servicos() {
       <section className="secao">
         <div className="container">
           <div className="grid-servicos">
-            {SERVICOS.map((s) => (
-              <div key={s.titulo} className="card destaque">
-                <span className="icone">{s.icone}</span>
-                <h3>{s.titulo}</h3>
+            {SERVICOS.map(({ Icone, titulo }) => (
+              <div key={titulo} className="card destaque">
+                <span className="icone-circulo" aria-hidden>
+                  <Icone size={28} strokeWidth={2} />
+                </span>
+                <h3>{titulo}</h3>
               </div>
             ))}
           </div>
           <div className="botoes centro">
-            <WhatsAppButton texto={MSG.servico}>🔧 Pedir orçamento de serviço</WhatsAppButton>
+            <WhatsAppButton texto={MSG.servico}>Pedir orçamento de serviço</WhatsAppButton>
           </div>
           <p className="centro">
             <a href={FACEBOOK_SERVICOS} target="_blank" rel="noopener">Veja nossos trabalhos no Facebook →</a>

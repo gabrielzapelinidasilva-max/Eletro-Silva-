@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { Menu, X } from "lucide-react";
 import { MENU } from "@/lib/site";
 
 export default function Header() {
@@ -22,7 +23,7 @@ export default function Header() {
           aria-controls="menu-principal"
           onClick={() => setAberto((v) => !v)}
         >
-          {aberto ? "✕" : "☰"}
+          {aberto ? <X size={28} aria-hidden /> : <Menu size={28} aria-hidden />}
           <span className="sr-only">Menu</span>
         </button>
         <nav id="menu-principal" className={`nav ${aberto ? "nav-aberto" : ""}`}>
