@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { MSG, wa } from "@/lib/site";
+import "@fontsource-variable/inter";
+import "@fontsource-variable/montserrat";
 import "./globals.css";
 
 export const metadata: Metadata = {

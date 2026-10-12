@@ -13,11 +13,8 @@ export default function Header() {
     <header className="header">
       <div className="container header-inner">
         <Link href="/" className="logo" onClick={() => setAberto(false)}>
-          <span className="logo-raio" aria-hidden>⚡</span>
-          <span>
-            <strong>Eletro Silva</strong>
-            <small>Materiais Elétricos</small>
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-branco.webp" alt="Eletro Silva Materiais Elétricos" width={440} height={170} />
         </Link>
         <button
           className="menu-toggle"
