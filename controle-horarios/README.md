@@ -67,9 +67,11 @@ Em **Project Settings → API** (ou **API Keys**), copie:
 |---|---|
 | **Project URL** | `NEXT_PUBLIC_SUPABASE_URL` |
 | Chave **anon / publishable** (pública) | `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
-| Chave **service_role / secret** (secreta) | `SUPABASE_SERVICE_ROLE_KEY` |
+| Chave **service_role / secret** (secreta, **opcional**) | `SUPABASE_SERVICE_ROLE_KEY` |
 
-⚠️ A chave **service_role** dá acesso total ao banco. **Nunca** a mande por WhatsApp ou e-mail, nem a coloque no código. Ela só vai nas variáveis de ambiente da Vercel e no seu arquivo `.env.local`. O app usa essa chave apenas no servidor; ela nunca vai para o navegador.
+A chave **service_role** é **opcional**: sem ela, o app gerencia os colaboradores pelas funções seguras do banco (`admin_*`, que conferem se quem pediu é administrador). Com ela, usa a API oficial de administração do Supabase.
+
+⚠️ Se usar a chave **service_role**, lembre que ela dá acesso total ao banco. **Nunca** a mande por WhatsApp ou e-mail, nem a coloque no código. Ela só vai nas variáveis de ambiente da Vercel e no seu arquivo `.env.local`. O app usa essa chave apenas no servidor; ela nunca vai para o navegador.
 
 ### 5. Criar o primeiro administrador
 
@@ -92,10 +94,10 @@ Depois disso, os outros colaboradores são criados **pelo próprio app**, na aba
 
 1. Entre em https://vercel.com/new e importe este repositório do GitHub.
 2. Em **Root Directory**, clique em **Edit** e escolha a pasta **`controle-horarios`**. Esse passo é importante.
-3. Abra **Environment Variables** e adicione as três variáveis do passo 4:
+3. Abra **Environment Variables** e adicione as variáveis do passo 4:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY` (opcional)
 4. Clique em **Deploy**. Em 1 ou 2 minutos você recebe um endereço como `https://eletro-silva-horarios.vercel.app`.
 5. Abra o endereço, entre com o administrador e cadastre os eletricistas.
 
