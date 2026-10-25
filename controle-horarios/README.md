@@ -45,10 +45,11 @@ Você vai precisar de:
 ### 2. Criar as tabelas e as regras de segurança
 
 1. No menu da esquerda do Supabase, clique em **SQL Editor** e depois em **New query**.
-2. Abra o arquivo [`supabase/migrations/0001_tabelas.sql`](supabase/migrations/0001_tabelas.sql), copie **todo** o conteúdo, cole no editor e clique em **Run**. Deve aparecer "Success".
-3. Clique em **New query** de novo, faça o mesmo com [`supabase/migrations/0002_rls.sql`](supabase/migrations/0002_rls.sql) e clique em **Run**.
+2. Abra o arquivo [`supabase/instalar-tudo.sql`](supabase/instalar-tudo.sql), copie **todo** o conteúdo, cole no editor e clique em **Run**. Deve aparecer "Success. No rows returned".
 
-Pode rodar os dois arquivos de novo no futuro sem problema, porque eles não apagam dados.
+(Esse arquivo é a junção de `supabase/migrations/0001_tabelas.sql` e `0002_rls.sql`; se preferir, rode os dois separadamente, nessa ordem.)
+
+Pode rodar de novo no futuro sem problema, porque não apaga dados.
 
 ### 3. Desligar o cadastro público
 
@@ -76,7 +77,7 @@ Escolha **uma** das duas formas:
 
 **Forma A: pelo painel do Supabase (sem instalar nada)**
 1. Vá em **Authentication → Users → Add user → Create new user**.
-2. Digite o e-mail e a senha do administrador, marque **Auto Confirm User** e clique em **Create user**.
+2. Digite o e-mail e a senha do administrador, marque **Auto Confirm User** e clique em **Create user**. (Por segurança, contas criadas no painel começam desativadas; o passo seguinte ativa e transforma em administrador.)
 3. Vá em **SQL Editor → New query**, cole o conteúdo de [`supabase/criar-admin.sql`](supabase/criar-admin.sql), **troque o e-mail e o nome** pelos seus e clique em **Run**. A última consulta deve mostrar uma linha com `funcao = admin`.
 
 **Forma B: pelo computador (precisa ter feito o passo "Rodar no computador" abaixo)**
