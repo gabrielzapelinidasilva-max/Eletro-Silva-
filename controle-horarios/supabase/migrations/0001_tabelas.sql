@@ -42,7 +42,7 @@ create unique index if not exists registros_um_aberto_por_usuario on public.regi
 
 -- Data de hoje no fuso de São Paulo
 create or replace function public.hoje_sp()
-returns date language sql stable as $$
+returns date language sql stable set search_path = public as $$
   select (now() at time zone 'America/Sao_Paulo')::date
 $$;
 
@@ -63,7 +63,7 @@ $$;
 
 -- Mantém atualizado_em em dia
 create or replace function public.tocar_atualizado_em()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = public as $$
 begin
   new.atualizado_em := now();
   return new;
@@ -76,16 +76,19 @@ create trigger registros_atualizado_em before update on public.registros
 -- Cria o perfil quando um usuário é criado no Supabase Auth.
 -- A função (admin/eletricista) vem de app_metadata, que só o servidor (service role) consegue definir.
 -- Assim, ninguém consegue se cadastrar sozinho como administrador.
+-- Contas sem "funcao" em app_metadata (cadastro feito por fora do app, ou criadas no painel)
+-- nascem INATIVAS: não entram até um administrador ativá-las.
 create or replace function public.criar_perfil_novo_usuario()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  insert into public.profiles (id, nome, email, telefone, funcao)
+  insert into public.profiles (id, nome, email, telefone, funcao, ativo)
   values (
     new.id,
     coalesce(nullif(trim(new.raw_user_meta_data ->> 'nome'), ''), split_part(new.email, '@', 1)),
     new.email,
     nullif(trim(new.raw_user_meta_data ->> 'telefone'), ''),
-    case when new.raw_app_meta_data ->> 'funcao' = 'admin' then 'admin' else 'eletricista' end
+    case when new.raw_app_meta_data ->> 'funcao' = 'admin' then 'admin' else 'eletricista' end,
+    coalesce(new.raw_app_meta_data ->> 'funcao', '') in ('admin', 'eletricista')
   )
   on conflict (id) do nothing;
   return new;
