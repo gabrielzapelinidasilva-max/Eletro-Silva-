@@ -11,9 +11,9 @@ import { Botao } from "@/components/ui/Botao";
 import { classesBotao } from "@/components/ui/estilos";
 import { IndicadorLink } from "@/components/ui/IndicadorLink";
 import { EstadoVazio } from "@/components/ui/Estados";
-import type { Registro } from "@/lib/tipos";
+import type { Registro, VeiculoOpcao } from "@/lib/tipos";
 
-export function MeusRegistros({ registros, hoje, temMais, proximoLimite }: { registros: Registro[]; hoje: string; temMais: boolean; proximoLimite: number }) {
+export function MeusRegistros({ registros, hoje, temMais, proximoLimite, veiculos }: { registros: Registro[]; hoje: string; temMais: boolean; proximoLimite: number; veiculos: VeiculoOpcao[] }) {
   const [editando, setEditando] = useState<Registro | null>(null);
 
   if (registros.length === 0) {
@@ -49,7 +49,7 @@ export function MeusRegistros({ registros, hoje, temMais, proximoLimite }: { reg
         </div>
       )}
       <Modal aberto={!!editando} aoFechar={() => setEditando(null)} titulo="Editar registro de hoje">
-        {editando && <FormRegistro key={editando.id} registro={editando} acao={editarMeuRegistro} aoConcluir={() => setEditando(null)} />}
+        {editando && <FormRegistro key={editando.id} registro={editando} veiculos={veiculos} acao={editarMeuRegistro} aoConcluir={() => setEditando(null)} />}
       </Modal>
     </>
   );

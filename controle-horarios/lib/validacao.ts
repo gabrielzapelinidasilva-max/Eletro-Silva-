@@ -1,5 +1,6 @@
 import { dataValida, horaValida } from "./datas";
 import { minutosEntre } from "./horas";
+import { lerNumero } from "./gastos";
 
 export type DadosRegistro = {
   data: string;
@@ -55,4 +56,35 @@ export function mensagemErroBanco(erro: { message?: string; code?: string } | nu
   if (msg.includes("servico_obrigatorio_na_saida")) return "Descreva o serviço realizado.";
   if (msg.includes("row-level security") || erro?.code === "42501") return "Você não tem permissão para fazer isso.";
   return "Não foi possível salvar. Tente novamente.";
+}
+
+export type GastosRegistro = {
+  veiculo_id: string | null;
+  km_rodados: number;
+  valor_material: number;
+  valor_servico: number | null;
+};
+
+/** Lê e valida carro, km, material e valor cobrado do formulário de registro. */
+export function lerGastosRegistro(form: FormData): { dados: GastosRegistro; erros: Record<string, string> } {
+  const erros: Record<string, string> = {};
+  const num = (campo: string, rotulo: string) => {
+    const bruto = texto(form, campo);
+    if (!bruto) return null;
+    const n = lerNumero(bruto);
+    if (n == null || n < 0 || n > 10_000_000) {
+      erros[campo] = `${rotulo} inválido. Ex.: ${campo === "km_rodados" ? "44" : "150,00"}`;
+      return null;
+    }
+    return n;
+  };
+  const veiculoId = texto(form, "veiculo_id");
+  const dados: GastosRegistro = {
+    veiculo_id: /^[0-9a-f-]{36}$/i.test(veiculoId) ? veiculoId : null,
+    km_rodados: num("km_rodados", "Km") ?? 0,
+    valor_material: num("valor_material", "Valor do material") ?? 0,
+    valor_servico: num("valor_servico", "Valor cobrado"),
+  };
+  if (dados.km_rodados > 0 && !dados.veiculo_id) erros.veiculo_id = "Escolha o carro usado.";
+  return { dados, erros };
 }

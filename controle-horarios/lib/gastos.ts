@@ -21,30 +21,32 @@ export type LancamentoCusto = {
   valor_hora: number;
   valor_servico: number;
   criado_em: string;
-};
-
-/** Trabalho registrado por um eletricista, que pode ser ligado a um lançamento. */
-export type TrabalhoParaCusto = {
-  id: string;
-  data: string;
-  cliente: string;
-  servico: string | null;
-  minutos: number | null;
-  colaborador: string;
+  /** Nome do eletricista, quando o lançamento veio de um registro. */
+  colaborador: string | null;
+  /** false quando veio de um registro em que o eletricista não informou o valor cobrado. */
+  valor_servico_informado: boolean;
 };
 
 export type Calculo = {
+  /** Valor cobrado pelo serviço + material (o material é da loja: entra como ganho). */
+  receita: number;
   custoGasolina: number;
   litros: number;
   custoMaoDeObra: number;
+  /** Gasolina + mão de obra. */
   custoTotal: number;
   lucro: number;
-  /** Percentual de lucro sobre o valor do serviço (null se o valor for zero). */
+  /** Percentual de lucro sobre a receita (null se a receita for zero). */
   margem: number | null;
 };
 
 const arredondar = (n: number) => Math.round(n * 100) / 100;
 
+/**
+ * Receita = valor do serviço + valor do material (o material é nosso, vira ganho).
+ * Custos = gasolina (km ÷ km/l × preço do litro) + mão de obra (horas × valor da hora).
+ * Lucro = receita − custos; % = lucro ÷ receita.
+ */
 export function calcular(l: {
   valor_material: number; km_rodados: number; consumo_km_l: number | null; preco_gasolina: number;
   horas: number; valor_hora: number; valor_servico: number;
@@ -52,10 +54,11 @@ export function calcular(l: {
   const litros = l.consumo_km_l && l.consumo_km_l > 0 ? l.km_rodados / l.consumo_km_l : 0;
   const custoGasolina = arredondar(litros * l.preco_gasolina);
   const custoMaoDeObra = arredondar(l.horas * l.valor_hora);
-  const custoTotal = arredondar(l.valor_material + custoGasolina + custoMaoDeObra);
-  const lucro = arredondar(l.valor_servico - custoTotal);
-  const margem = l.valor_servico > 0 ? (lucro / l.valor_servico) * 100 : null;
-  return { custoGasolina, litros, custoMaoDeObra, custoTotal, lucro, margem };
+  const custoTotal = arredondar(custoGasolina + custoMaoDeObra);
+  const receita = arredondar(l.valor_servico + l.valor_material);
+  const lucro = arredondar(receita - custoTotal);
+  const margem = receita > 0 ? (lucro / receita) * 100 : null;
+  return { receita, custoGasolina, litros, custoMaoDeObra, custoTotal, lucro, margem };
 }
 
 /**
@@ -104,11 +107,14 @@ export function paraCampo(n: number | null | undefined, casas = 2): string {
   return n.toLocaleString("pt-BR", { maximumFractionDigits: casas, useGrouping: false });
 }
 
-/** Os valores numéricos chegam do Supabase como texto (numeric) — converte para number. */
+/** Converte a linha do Supabase (com o registro do eletricista embutido, se houver). */
 export function normalizarLancamento(l: Record<string, unknown>): LancamentoCusto {
   const n = (v: unknown) => (v == null ? 0 : Number(v));
+  const reg = l.registros as { valor_servico: unknown; profiles: { nome: string } | null } | null | undefined;
+  const { registros: _ignorar, ...resto } = l;
+  void _ignorar;
   return {
-    ...(l as LancamentoCusto),
+    ...(resto as LancamentoCusto),
     valor_material: n(l.valor_material),
     km_rodados: n(l.km_rodados),
     consumo_km_l: l.consumo_km_l == null ? null : Number(l.consumo_km_l),
@@ -116,5 +122,7 @@ export function normalizarLancamento(l: Record<string, unknown>): LancamentoCust
     horas: n(l.horas),
     valor_hora: n(l.valor_hora),
     valor_servico: n(l.valor_servico),
+    colaborador: reg?.profiles?.nome ?? null,
+    valor_servico_informado: l.registro_id ? reg?.valor_servico != null : true,
   };
 }

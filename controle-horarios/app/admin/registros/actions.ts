@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { exigirAdmin } from "@/lib/auth";
 import { criarClienteServidor } from "@/lib/supabase/server";
-import { lerRegistro, mensagemErroBanco, validarRegistro } from "@/lib/validacao";
+import { lerGastosRegistro, lerRegistro, mensagemErroBanco, validarRegistro } from "@/lib/validacao";
 import { falha, falhaValidacao, sucesso } from "@/lib/resultado";
 import type { Resultado } from "@/lib/tipos";
 
@@ -11,7 +11,8 @@ export async function adminEditarRegistro(_a: Resultado, form: FormData): Promis
   await exigirAdmin();
   const id = String(form.get("id") ?? "");
   const dados = lerRegistro(form);
-  const erros = validarRegistro(dados);
+  const gastos = lerGastosRegistro(form);
+  const erros = { ...validarRegistro(dados), ...gastos.erros };
   if (Object.keys(erros).length) return falhaValidacao(erros, form);
 
   const supabase = await criarClienteServidor();
@@ -24,6 +25,7 @@ export async function adminEditarRegistro(_a: Resultado, form: FormData): Promis
       cliente: dados.cliente,
       servico: dados.servico,
       observacoes: dados.observacoes,
+      ...gastos.dados,
     })
     .eq("id", id)
     .select("id");

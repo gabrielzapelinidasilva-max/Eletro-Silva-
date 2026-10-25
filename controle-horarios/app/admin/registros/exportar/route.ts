@@ -22,7 +22,8 @@ export async function GET(request: NextRequest) {
   const supabase = await criarClienteServidor();
   const registros = await buscarRegistros(supabase, filtros);
 
-  const cabecalho = ["Data", "Colaborador", "Chegada", "Saída", "Horas (h:mm)", "Horas (decimal)", "Cliente", "Serviço", "Observações"];
+  const cabecalho = ["Data", "Colaborador", "Chegada", "Saída", "Horas (h:mm)", "Horas (decimal)", "Cliente", "Serviço", "Observações", "Km rodados", "Material (R$)", "Valor cobrado (R$)"];
+  const dinheiro = (n: number | null) => (n == null ? "" : Number(n).toFixed(2).replace(".", ","));
   const linhas = registros
     .slice()
     .reverse() // do mais antigo para o mais recente
@@ -37,6 +38,9 @@ export async function GET(request: NextRequest) {
         r.cliente,
         r.servico,
         r.observacoes,
+        Number(r.km_rodados) ? String(r.km_rodados).replace(".", ",") : "",
+        Number(r.valor_material) ? dinheiro(r.valor_material) : "",
+        dinheiro(r.valor_servico),
       ].map(celula).join(";"),
     );
 

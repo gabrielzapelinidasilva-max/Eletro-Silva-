@@ -44,7 +44,7 @@ export function ConfiguracoesGastos({ config, veiculos }: { config: Configuracoe
           placeholder="0,00"
           defaultValue={estado.valores?.valor_hora_padrao ?? paraCampo(config.valor_hora_padrao)}
           erro={e.valor_hora_padrao}
-          ajuda="Já vem preenchido em cada lançamento (dá para mudar lá)."
+          ajuda="Usado nos serviços que os eletricistas registrarem a partir de agora (e nos avulsos)."
         />
         <BotaoEnviar className="sm:mb-6" textoCarregando="Salvando...">
           <Save className="size-5" aria-hidden /> Salvar valores

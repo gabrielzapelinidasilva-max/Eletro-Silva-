@@ -11,6 +11,7 @@ import { criarClienteServidor } from "@/lib/supabase/server";
 import { buscarRegistros, filtrosParaURL, INICIO_HISTORICO, lerFiltros, totaisPorCliente, type Filtros } from "@/lib/consultas";
 import { dataPorExtenso, formatarData, formatarHora, hojeSP } from "@/lib/datas";
 import { formatarMinutos, somarMinutos } from "@/lib/horas";
+import { formatarMoeda, formatarNumero } from "@/lib/gastos";
 import type { Perfil, RegistroComPerfil } from "@/lib/tipos";
 
 export const metadata: Metadata = { title: "Histórico" };
@@ -234,6 +235,13 @@ function CartaoTrabalho({ registro: r }: { registro: RegistroComPerfil }) {
         <span className="flex items-center gap-1.5 tabular-nums"><Clock className="size-4" aria-hidden /> {formatarHora(r.hora_chegada)} – {formatarHora(r.hora_saida)}</span>
       </div>
       {r.servico && <p className="mt-3 whitespace-pre-wrap break-words text-slate-800">{r.servico}</p>}
+      {(Number(r.valor_material) > 0 || r.valor_servico != null || Number(r.km_rodados) > 0) && (
+        <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+          {Number(r.km_rodados) > 0 && <span>{formatarNumero(Number(r.km_rodados), 1)} km rodados</span>}
+          {Number(r.valor_material) > 0 && <span>Material: {formatarMoeda(Number(r.valor_material))}</span>}
+          {r.valor_servico != null && <span>Cobrado: {formatarMoeda(Number(r.valor_servico))}</span>}
+        </p>
+      )}
       {r.observacoes && (
         <p className="mt-2 whitespace-pre-wrap break-words rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
           <span className="font-semibold text-slate-700">Obs.: </span>{r.observacoes}

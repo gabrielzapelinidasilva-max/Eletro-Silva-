@@ -32,7 +32,7 @@ function numero(form: FormData, campo: string, erros: Record<string, string>, { 
 }
 
 function atualizar() {
-  revalidatePath("/admin/gastos");
+  revalidatePath("/admin", "layout");
 }
 
 export async function salvarLancamento(_a: Resultado, form: FormData): Promise<Resultado> {
@@ -41,15 +41,24 @@ export async function salvarLancamento(_a: Resultado, form: FormData): Promise<R
   const id = texto(form, "id");
   const erros: Record<string, string> = {};
 
+  // Lançamento que veio de um registro de eletricista?
+  let registroId: string | null = null;
+  if (id) {
+    const { data: atual } = await supabase.from("custos_servico").select("registro_id").eq("id", id).single();
+    if (!atual) return falha("Lançamento não encontrado.", form);
+    registroId = atual.registro_id;
+  }
+
   const data = texto(form, "data");
   const cliente = texto(form, "cliente");
   const descricao = texto(form, "descricao") || null;
-  const registroId = texto(form, "registro_id") || null;
   const veiculoId = texto(form, "veiculo_id") || null;
-  if (!dataValida(data)) erros.data = "Informe a data do serviço.";
-  if (!cliente) erros.cliente = "Informe o cliente.";
-  else if (cliente.length > 200) erros.cliente = "Nome do cliente muito longo.";
-  if (descricao && descricao.length > 2000) erros.descricao = "Texto muito longo (máx. 2000 caracteres).";
+  if (!registroId) {
+    if (!dataValida(data)) erros.data = "Informe a data do serviço.";
+    if (!cliente) erros.cliente = "Informe o cliente.";
+    else if (cliente.length > 200) erros.cliente = "Nome do cliente muito longo.";
+    if (descricao && descricao.length > 2000) erros.descricao = "Texto muito longo (máx. 2000 caracteres).";
+  }
 
   const valorMaterial = numero(form, "valor_material", erros);
   const km = numero(form, "km_rodados", erros);
@@ -60,7 +69,21 @@ export async function salvarLancamento(_a: Resultado, form: FormData): Promise<R
   if (km > 0 && !veiculoId) erros.veiculo_id = "Escolha o carro usado para calcular a gasolina.";
   if (Object.keys(erros).length) return falhaValidacao(erros, form);
 
-  // Copia o consumo do carro no momento do lançamento.
+  if (registroId) {
+    // Ligado a um registro: carro, km, material e valor cobrado ficam no registro
+    // (o gatilho do banco copia para cá); preço da gasolina e valor da hora ficam no lançamento.
+    const { error: erroReg } = await supabase
+      .from("registros")
+      .update({ veiculo_id: veiculoId, km_rodados: km, valor_material: valorMaterial, valor_servico: valorServico })
+      .eq("id", registroId);
+    if (erroReg) return falha("Não foi possível salvar. Tente novamente.", form);
+    const { error } = await supabase.from("custos_servico").update({ preco_gasolina: precoGasolina, valor_hora: valorHora }).eq("id", id);
+    if (error) return falha("Não foi possível salvar. Tente novamente.", form);
+    atualizar();
+    return sucesso("Gastos do serviço atualizados.");
+  }
+
+  // Lançamento avulso: copia o consumo do carro no momento do lançamento.
   let veiculo: { nome: string; consumo_km_l: number } | null = null;
   if (veiculoId) {
     const { data: v } = await supabase.from("veiculos").select("nome, consumo_km_l").eq("id", veiculoId).single();
@@ -69,7 +92,6 @@ export async function salvarLancamento(_a: Resultado, form: FormData): Promise<R
   }
 
   const linha = {
-    registro_id: registroId,
     data,
     cliente,
     descricao,
@@ -87,24 +109,26 @@ export async function salvarLancamento(_a: Resultado, form: FormData): Promise<R
   const { error } = id
     ? await supabase.from("custos_servico").update(linha).eq("id", id)
     : await supabase.from("custos_servico").insert(linha);
-  if (error) {
-    if (error.message.includes("custos_servico_registro_id_key")) {
-      return falha("Este trabalho já tem gastos lançados. Edite o lançamento existente.", form, { registro_id: "Já lançado." });
-    }
-    return falha("Não foi possível salvar. Tente novamente.", form);
-  }
+  if (error) return falha("Não foi possível salvar. Tente novamente.", form);
 
   atualizar();
-  return sucesso(id ? "Lançamento atualizado." : "Gastos lançados.");
+  return sucesso(id ? "Lançamento atualizado." : "Lançamento salvo.");
 }
 
 export async function excluirLancamento(_a: Resultado, form: FormData): Promise<Resultado> {
   await exigirAdmin();
   const supabase = await criarClienteServidor();
-  const { data, error } = await supabase.from("custos_servico").delete().eq("id", texto(form, "id")).select("id");
+  const id = texto(form, "id");
+  const { data: atual } = await supabase.from("custos_servico").select("registro_id").eq("id", id).single();
+  if (!atual) return falha("Lançamento não encontrado.");
+
+  // Lançamento de um registro: exclui o registro (o gatilho do banco exclui os gastos junto).
+  const { data, error } = atual.registro_id
+    ? await supabase.from("registros").delete().eq("id", atual.registro_id).select("id")
+    : await supabase.from("custos_servico").delete().eq("id", id).select("id");
   if (error || !data?.length) return falha("Não foi possível excluir. Tente novamente.");
-  atualizar();
-  return sucesso("Lançamento excluído.");
+  revalidatePath("/admin", "layout");
+  return sucesso(atual.registro_id ? "Serviço e gastos excluídos." : "Lançamento excluído.");
 }
 
 export async function salvarConfiguracoes(_a: Resultado, form: FormData): Promise<Resultado> {

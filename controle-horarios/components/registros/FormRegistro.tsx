@@ -4,13 +4,15 @@ import { useActionState } from "react";
 import { Save } from "lucide-react";
 import { Campo, AreaTexto } from "@/components/ui/Campo";
 import { CampoHora } from "./CampoHora";
+import { CamposGastosRegistro } from "./CamposGastosRegistro";
 import { BotaoEnviar, Botao } from "@/components/ui/Botao";
 import { useToastDoResultado } from "@/components/ui/Toast";
 import { formatarHora } from "@/lib/datas";
-import { RESULTADO_INICIAL, type Registro, type Resultado } from "@/lib/tipos";
+import { RESULTADO_INICIAL, type Registro, type Resultado, type VeiculoOpcao } from "@/lib/tipos";
 
 type Props = {
   registro: Registro;
+  veiculos: VeiculoOpcao[];
   acao: (anterior: Resultado, form: FormData) => Promise<Resultado>;
   /** O administrador pode trocar a data; o eletricista não. */
   permitirData?: boolean;
@@ -18,7 +20,7 @@ type Props = {
 };
 
 /** Formulário de edição completa de um registro (usado nas duas áreas). */
-export function FormRegistro({ registro, acao, permitirData, aoConcluir }: Props) {
+export function FormRegistro({ registro, veiculos, acao, permitirData, aoConcluir }: Props) {
   const [estado, enviar] = useActionState(acao, RESULTADO_INICIAL);
   useToastDoResultado(estado, aoConcluir);
   const e = estado.erros ?? {};
@@ -40,6 +42,7 @@ export function FormRegistro({ registro, acao, permitirData, aoConcluir }: Props
       <Campo rotulo="Cliente" name="cliente" defaultValue={v("cliente", registro.cliente)} erro={e.cliente} obrigatorio maxLength={200} />
       <AreaTexto rotulo="Serviço realizado" name="servico" defaultValue={v("servico", registro.servico ?? "")} erro={e.servico} ajuda="Obrigatório quando houver saída." maxLength={2000} />
       <AreaTexto rotulo="Observações" name="observacoes" defaultValue={v("observacoes", registro.observacoes ?? "")} erro={e.observacoes} rows={4} maxLength={5000} />
+      <CamposGastosRegistro veiculos={veiculos} inicial={registro} digitado={estado.valores} erros={e} />
       <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
         <Botao variante="fantasma" onClick={aoConcluir}>Cancelar</Botao>
         <BotaoEnviar textoCarregando="Salvando...">

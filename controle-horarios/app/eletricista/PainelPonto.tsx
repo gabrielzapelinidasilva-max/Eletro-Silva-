@@ -4,15 +4,16 @@ import { useActionState } from "react";
 import { LogIn, LogOut, MapPin, Clock } from "lucide-react";
 import { registrarChegada, registrarSaida } from "./actions";
 import { CampoHoraAtual } from "@/components/registros/CampoHora";
+import { CamposGastosRegistro } from "@/components/registros/CamposGastosRegistro";
 import { Campo, AreaTexto } from "@/components/ui/Campo";
 import { BotaoEnviar } from "@/components/ui/Botao";
 import { Cartao } from "@/components/ui/Cartao";
 import { useToastDoResultado } from "@/components/ui/Toast";
 import { formatarData, formatarHora } from "@/lib/datas";
-import { RESULTADO_INICIAL, type Registro, type Resultado } from "@/lib/tipos";
+import { RESULTADO_INICIAL, type Registro, type Resultado, type VeiculoOpcao } from "@/lib/tipos";
 
 /** Cartão principal: "Registrar chegada" ou, se já chegou, "Registrar saída". */
-export function PainelPonto({ aberto, hoje, horaAgora }: { aberto: Registro | null; hoje: string; horaAgora: string }) {
+export function PainelPonto({ aberto, hoje, horaAgora, veiculos }: { aberto: Registro | null; hoje: string; horaAgora: string; veiculos: VeiculoOpcao[] }) {
   // Os estados ficam aqui (e não nos formulários) porque, ao salvar, um formulário
   // troca pelo outro; assim o aviso de sucesso não se perde.
   const [estadoChegada, enviarChegada] = useActionState(registrarChegada, RESULTADO_INICIAL);
@@ -33,7 +34,7 @@ export function PainelPonto({ aberto, hoje, horaAgora }: { aberto: Registro | nu
     );
   }
   return aberto ? (
-    <FormSaida key={aberto.id} registro={aberto} horaAgora={horaAgora} estado={estadoSaida} enviar={enviarSaida} />
+    <FormSaida key={aberto.id} registro={aberto} horaAgora={horaAgora} estado={estadoSaida} enviar={enviarSaida} veiculos={veiculos} />
   ) : (
     <FormChegada horaAgora={horaAgora} hoje={hoje} estado={estadoChegada} enviar={enviarChegada} />
   );
@@ -65,7 +66,7 @@ function FormChegada({ horaAgora, hoje, estado, enviar }: PropsForm & { hoje: st
   );
 }
 
-function FormSaida({ registro, horaAgora, estado, enviar }: PropsForm & { registro: Registro }) {
+function FormSaida({ registro, horaAgora, estado, enviar, veiculos }: PropsForm & { registro: Registro; veiculos: VeiculoOpcao[] }) {
   const e = estado.erros ?? {};
 
   return (
@@ -86,6 +87,7 @@ function FormSaida({ registro, horaAgora, estado, enviar }: PropsForm & { regist
         <Campo rotulo="Cliente" name="cliente" defaultValue={estado.valores?.cliente ?? registro.cliente} erro={e.cliente} obrigatorio maxLength={200} />
         <AreaTexto rotulo="Serviço realizado" name="servico" defaultValue={estado.valores?.servico} placeholder="Ex.: Troca de disjuntor e revisão do quadro" erro={e.servico} obrigatorio maxLength={2000} />
         <AreaTexto rotulo="Observações (opcional)" name="observacoes" defaultValue={estado.valores?.observacoes} placeholder="Materiais usados, pendências, recados..." erro={e.observacoes} rows={4} maxLength={5000} />
+        <CamposGastosRegistro veiculos={veiculos} inicial={registro} digitado={estado.valores} erros={e} />
         <BotaoEnviar variante="sucesso" tamanho="xl" className="w-full" textoCarregando="Registrando...">
           <LogOut className="size-6" aria-hidden />
           Registrar saída

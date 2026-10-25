@@ -11,11 +11,12 @@ import { Selo } from "@/components/ui/Estados";
 import { useToastDoResultado } from "@/components/ui/Toast";
 import { formatarData, formatarDataHora, formatarHora } from "@/lib/datas";
 import { formatarMinutos } from "@/lib/horas";
-import { RESULTADO_INICIAL, type RegistroComPerfil } from "@/lib/tipos";
+import { RESULTADO_INICIAL, type RegistroComPerfil, type VeiculoOpcao } from "@/lib/tipos";
+import { formatarMoeda, formatarNumero } from "@/lib/gastos";
 
 type Janela = { tipo: "detalhes" | "editar" | "excluir"; registro: RegistroComPerfil } | null;
 
-export function TabelaRegistros({ registros }: { registros: RegistroComPerfil[] }) {
+export function TabelaRegistros({ registros, veiculos }: { registros: RegistroComPerfil[]; veiculos: VeiculoOpcao[] }) {
   const [janela, setJanela] = useState<Janela>(null);
   const fechar = () => setJanela(null);
   const [estadoExclusao, excluir] = useActionState(adminExcluirRegistro, RESULTADO_INICIAL);
@@ -77,11 +78,11 @@ export function TabelaRegistros({ registros }: { registros: RegistroComPerfil[] 
       </div>
 
       <Modal aberto={janela?.tipo === "detalhes"} aoFechar={fechar} titulo="Detalhes do registro">
-        {janela?.tipo === "detalhes" && <Detalhes registro={janela.registro} aoEditar={() => setJanela({ tipo: "editar", registro: janela.registro })} />}
+        {janela?.tipo === "detalhes" && <Detalhes veiculos={veiculos} registro={janela.registro} aoEditar={() => setJanela({ tipo: "editar", registro: janela.registro })} />}
       </Modal>
 
       <Modal aberto={janela?.tipo === "editar"} aoFechar={fechar} titulo={`Editar registro${janela?.registro.profiles?.nome ? ` – ${janela.registro.profiles.nome}` : ""}`}>
-        {janela?.tipo === "editar" && <FormRegistro key={janela.registro.id} registro={janela.registro} acao={adminEditarRegistro} permitirData aoConcluir={fechar} />}
+        {janela?.tipo === "editar" && <FormRegistro key={janela.registro.id} registro={janela.registro} veiculos={veiculos} acao={adminEditarRegistro} permitirData aoConcluir={fechar} />}
       </Modal>
 
       <Modal aberto={janela?.tipo === "excluir"} aoFechar={fechar} titulo="Excluir registro?" largura="sm">
@@ -105,7 +106,7 @@ export function TabelaRegistros({ registros }: { registros: RegistroComPerfil[] 
   );
 }
 
-function Detalhes({ registro: r, aoEditar }: { registro: RegistroComPerfil; aoEditar: () => void }) {
+function Detalhes({ registro: r, veiculos, aoEditar }: { registro: RegistroComPerfil; veiculos: VeiculoOpcao[]; aoEditar: () => void }) {
   const linha = (rotulo: string, valor: React.ReactNode) => (
     <div className="grid grid-cols-3 gap-3 py-2.5">
       <dt className="text-sm font-semibold text-slate-500">{rotulo}</dt>
@@ -123,6 +124,9 @@ function Detalhes({ registro: r, aoEditar }: { registro: RegistroComPerfil; aoEd
         {linha("Cliente", r.cliente)}
         {linha("Serviço", r.servico || "—")}
         {linha("Observações", r.observacoes || "—")}
+        {linha("Carro", r.veiculo_id ? `${veiculos.find((c) => c.id === r.veiculo_id)?.nome ?? "—"} · ${formatarNumero(Number(r.km_rodados), 1)} km` : "—")}
+        {linha("Material", formatarMoeda(Number(r.valor_material)))}
+        {linha("Valor cobrado", r.valor_servico == null ? "Não informado" : formatarMoeda(Number(r.valor_servico)))}
         {linha("Criado em", formatarDataHora(r.criado_em))}
         {linha("Atualizado em", formatarDataHora(r.atualizado_em))}
       </dl>

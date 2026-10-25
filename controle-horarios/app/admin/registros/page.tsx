@@ -8,7 +8,7 @@ import { criarClienteServidor } from "@/lib/supabase/server";
 import { buscarRegistros, lerFiltros, totaisPorColaborador } from "@/lib/consultas";
 import { formatarData } from "@/lib/datas";
 import { formatarMinutos, somarMinutos } from "@/lib/horas";
-import type { Perfil } from "@/lib/tipos";
+import type { Perfil, VeiculoOpcao } from "@/lib/tipos";
 
 export const metadata: Metadata = { title: "Registros" };
 
@@ -19,10 +19,12 @@ export default async function PaginaRegistros({ searchParams }: { searchParams: 
   const filtros = lerFiltros(await searchParams);
   const supabase = await criarClienteServidor();
 
-  const [registros, { data: pessoas }] = await Promise.all([
+  const [registros, { data: pessoas }, { data: carros }] = await Promise.all([
     buscarRegistros(supabase, filtros),
     supabase.from("profiles").select("id, nome, ativo").order("nome"),
+    supabase.from("veiculos").select("id, nome, consumo_km_l").order("nome"),
   ]);
+  const veiculos: VeiculoOpcao[] = (carros ?? []).map((c) => ({ ...c, consumo_km_l: Number(c.consumo_km_l) }));
   const totais = totaisPorColaborador(registros);
 
   return (
@@ -71,7 +73,7 @@ export default async function PaginaRegistros({ searchParams }: { searchParams: 
                 Mostrando os {MOSTRAR_NA_TELA} mais recentes de {registros.length}. Os totais consideram todos. Use os filtros ou exporte para ver tudo.
               </p>
             )}
-            <TabelaRegistros registros={registros.slice(0, MOSTRAR_NA_TELA)} />
+            <TabelaRegistros registros={registros.slice(0, MOSTRAR_NA_TELA)} veiculos={veiculos} />
           </section>
         </>
       )}

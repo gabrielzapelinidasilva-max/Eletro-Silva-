@@ -20,9 +20,18 @@ export type Registro = {
   servico: string | null;
   observacoes: string | null;
   minutos_trabalhados: number | null;
+  // Dados para a aba Gastos (preenchidos pelo eletricista ao registrar a saída)
+  veiculo_id: string | null;
+  km_rodados: number;
+  valor_material: number;
+  /** null = não informado */
+  valor_servico: number | null;
   criado_em: string;
   atualizado_em: string;
 };
+
+/** Carro disponível para escolher no registro. */
+export type VeiculoOpcao = { id: string; nome: string; consumo_km_l: number };
 
 export type RegistroComPerfil = Registro & { profiles: Pick<Perfil, "nome"> | null };
 
