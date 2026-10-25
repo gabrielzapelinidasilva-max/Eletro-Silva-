@@ -5,6 +5,8 @@ Site em Next.js, hospedado na **Vercel**, com catálogo, ofertas, sorteio e form
 Páginas: Início · Quem Somos · Conheça a Loja · Serviços · Catálogo · Ofertas e Sorteios · Fornecedores · Contato.
 Todos os botões de WhatsApp usam (48) 99814-9358 com mensagem pronta.
 
+> **Controle de Horários dos eletricistas**: é um app separado, na pasta [`controle-horarios/`](controle-horarios/README.md). Ele é publicado como outro projeto na Vercel (Root Directory = `controle-horarios`). O passo a passo está no README dessa pasta.
+
 ## 1. Supabase (uma vez)
 
 1. No painel do projeto: **SQL Editor → New query**, cole o conteúdo de `supabase/schema.sql` e clique **Run**.

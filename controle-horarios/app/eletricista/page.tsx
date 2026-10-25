@@ -1,0 +1,54 @@
+import type { Metadata } from "next";
+import { PainelPonto } from "./PainelPonto";
+import { MeusRegistros } from "./MeusRegistros";
+import { Indicador, TituloSecao } from "@/components/ui/Cartao";
+import { exigirEletricista } from "@/lib/auth";
+import { criarClienteServidor } from "@/lib/supabase/server";
+import { dataPorExtenso, hojeSP, horaAgoraSP, inicioMes, inicioSemana } from "@/lib/datas";
+import { formatarMinutos, somarMinutos } from "@/lib/horas";
+import type { Registro } from "@/lib/tipos";
+
+export const metadata: Metadata = { title: "Meus horários" };
+
+export default async function PaginaEletricista({ searchParams }: { searchParams: Promise<{ limite?: string }> }) {
+  const perfil = await exigirEletricista();
+  const supabase = await criarClienteServidor();
+  const hoje = hojeSP();
+  const semana = inicioSemana(hoje);
+  const mes = inicioMes(hoje);
+  const limite = Math.min(Math.max(Number((await searchParams).limite) || 30, 30), 500);
+
+  const [{ data: lista }, { data: periodo }, { data: aberto }] = await Promise.all([
+    supabase.from("registros").select("*").eq("usuario_id", perfil.id)
+      .order("data", { ascending: false }).order("hora_chegada", { ascending: false }).limit(limite + 1),
+    supabase.from("registros").select("data, minutos_trabalhados").eq("usuario_id", perfil.id).gte("data", semana < mes ? semana : mes),
+    supabase.from("registros").select("*").eq("usuario_id", perfil.id).is("hora_saida", null).maybeSingle(),
+  ]);
+
+  const registros = (lista ?? []) as Registro[];
+  const doPeriodo = (periodo ?? []) as Pick<Registro, "data" | "minutos_trabalhados">[];
+  const total = (desde: string) => formatarMinutos(somarMinutos(doPeriodo.filter((r) => r.data >= desde)));
+  const primeiroNome = perfil.nome.split(" ")[0];
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-extrabold text-slate-900">Olá, {primeiroNome}!</h1>
+        <p className="mt-0.5 text-slate-500">{dataPorExtenso(hoje)}</p>
+      </div>
+
+      <PainelPonto aberto={(aberto as Registro | null) ?? null} hoje={hoje} horaAgora={horaAgoraSP()} />
+
+      <section aria-label="Totais de horas" className="grid grid-cols-3 gap-3">
+        <Indicador rotulo="Hoje" valor={total(hoje)} />
+        <Indicador rotulo="Semana" valor={total(semana)} />
+        <Indicador rotulo="Mês" valor={total(mes)} destaque />
+      </section>
+
+      <section>
+        <TituloSecao>Meus registros</TituloSecao>
+        <MeusRegistros registros={registros.slice(0, limite)} hoje={hoje} temMais={registros.length > limite} proximoLimite={limite + 30} />
+      </section>
+    </div>
+  );
+}

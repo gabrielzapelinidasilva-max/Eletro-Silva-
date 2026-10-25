@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  /* Azul da marca Eletro Silva (#0049AF = marca-600) e variações */
+  --color-marca-50: #eef4fc;
+  --color-marca-100: #d9e6f8;
+  --color-marca-200: #b3cdf1;
+  --color-marca-300: #7fa9e4;
+  --color-marca-400: #3f7bd1;
+  --color-marca-500: #1460c2;
+  --color-marca-600: #0049af;
+  --color-marca-700: #003d93;
+  --color-marca-800: #003076;
+  --color-marca-900: #00245a;
+  --color-marca-950: #00173b;
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+html { -webkit-tap-highlight-color: transparent; }
+body { @apply bg-slate-50 text-slate-800 antialiased; }
+
+/* Evita zoom automático do iOS em campos com fonte menor que 16px */
+input, select, textarea { font-size: 16px; }
+
+@keyframes entrar { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.animar-entrada { animation: entrar .2s ease-out both; }
