@@ -1,6 +1,6 @@
 -- Eletro Silva – Controle de Horários: INSTALAÇÃO COMPLETA
 -- Supabase → SQL Editor → New query → cole TUDO → Run. Pode rodar mais de uma vez.
--- (É a junção de migrations/0001_tabelas.sql + migrations/0002_rls.sql.)
+-- (Junção de migrations/0001_tabelas.sql + 0002_rls.sql + 0003_permissoes_funcoes.sql.)
 
 
 -- Perfis (um por usuário do Supabase Auth)
@@ -161,5 +161,15 @@ create policy "registros: so admin exclui" on public.registros
   using (public.is_admin());
 
 -- Visitantes não logados (anon) não têm acesso a nada destas tabelas.
+revoke all on public.profiles from anon;
+revoke all on public.registros from anon;
+
+
+revoke execute on function public.criar_perfil_novo_usuario() from public, anon, authenticated;
+revoke execute on function public.sincronizar_email_perfil() from public, anon, authenticated;
+revoke execute on function public.is_admin() from public, anon;
+revoke execute on function public.is_ativo() from public, anon;
+grant execute on function public.is_admin() to authenticated;
+grant execute on function public.is_ativo() to authenticated;
 revoke all on public.profiles from anon;
 revoke all on public.registros from anon;

@@ -47,7 +47,7 @@ Você vai precisar de:
 1. No menu da esquerda do Supabase, clique em **SQL Editor** e depois em **New query**.
 2. Abra o arquivo [`supabase/instalar-tudo.sql`](supabase/instalar-tudo.sql), copie **todo** o conteúdo, cole no editor e clique em **Run**. Deve aparecer "Success. No rows returned".
 
-(Esse arquivo é a junção de `supabase/migrations/0001_tabelas.sql` e `0002_rls.sql`; se preferir, rode os dois separadamente, nessa ordem.)
+(Esse arquivo é a junção dos três arquivos de `supabase/migrations/`; se preferir, rode-os separadamente, em ordem.)
 
 Pode rodar de novo no futuro sem problema, porque não apaga dados.
 
