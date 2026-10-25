@@ -9,6 +9,7 @@ import { FormRegistro } from "@/components/registros/FormRegistro";
 import { Modal } from "@/components/ui/Modal";
 import { Botao } from "@/components/ui/Botao";
 import { classesBotao } from "@/components/ui/estilos";
+import { IndicadorLink } from "@/components/ui/IndicadorLink";
 import { EstadoVazio } from "@/components/ui/Estados";
 import type { Registro } from "@/lib/tipos";
 
@@ -43,7 +44,7 @@ export function MeusRegistros({ registros, hoje, temMais, proximoLimite }: { reg
       {temMais && (
         <div className="mt-4 text-center">
           <Link href={`?limite=${proximoLimite}`} scroll={false} className={classesBotao("secundario", "md")}>
-            Ver registros mais antigos
+            Ver registros mais antigos <IndicadorLink />
           </Link>
         </div>
       )}

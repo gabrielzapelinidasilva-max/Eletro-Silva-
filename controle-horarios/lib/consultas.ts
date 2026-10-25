@@ -17,15 +17,21 @@ function primeiro(v: string | string[] | undefined): string {
   return (Array.isArray(v) ? v[0] : v)?.trim() ?? "";
 }
 
-/** Lê os filtros da URL. Sem período informado, usa o mês atual. */
-export function lerFiltros(p: Parametros): Filtros {
+/** Primeira data considerada quando o período fica em branco no histórico. */
+export const INICIO_HISTORICO = "2000-01-01";
+
+/**
+ * Lê os filtros da URL. Sem período informado, usa o mês atual,
+ * ou todo o histórico quando `todoPeriodo` for verdadeiro.
+ */
+export function lerFiltros(p: Parametros, { todoPeriodo = false } = {}): Filtros {
   const hoje = hojeSP();
   const de = primeiro(p.de);
   const ate = primeiro(p.ate);
   const colaborador = primeiro(p.colaborador);
   return {
     colaborador: /^[0-9a-f-]{36}$/i.test(colaborador) ? colaborador : "",
-    de: dataValida(de) ? de : inicioMes(hoje),
+    de: dataValida(de) ? de : todoPeriodo ? INICIO_HISTORICO : inicioMes(hoje),
     ate: dataValida(ate) ? ate : hoje,
     cliente: primeiro(p.cliente).slice(0, 100),
     q: primeiro(p.q).slice(0, 100),
@@ -86,4 +92,30 @@ export function totaisPorColaborador(registros: RegistroComPerfil[]): TotalColab
     mapa.set(r.usuario_id, t);
   }
   return [...mapa.values()].sort((a, b) => b.minutos - a.minutos || a.nome.localeCompare(b.nome, "pt-BR"));
+}
+
+export type TotalCliente = {
+  cliente: string;
+  trabalhos: number;
+  minutos: number;
+  primeiraVisita: string;
+  ultimaVisita: string;
+  colaboradores: string[];
+};
+
+/** Agrupa os registros por cliente (ignorando maiúsculas/minúsculas e espaços extras). */
+export function totaisPorCliente(registros: RegistroComPerfil[]): TotalCliente[] {
+  const mapa = new Map<string, TotalCliente>();
+  for (const r of registros) {
+    const chave = r.cliente.trim().replace(/\s+/g, " ").toLocaleLowerCase("pt-BR");
+    const t = mapa.get(chave) ?? { cliente: r.cliente.trim(), trabalhos: 0, minutos: 0, primeiraVisita: r.data, ultimaVisita: r.data, colaboradores: [] };
+    t.trabalhos += 1;
+    t.minutos += r.minutos_trabalhados ?? 0;
+    if (r.data < t.primeiraVisita) t.primeiraVisita = r.data;
+    if (r.data > t.ultimaVisita) t.ultimaVisita = r.data;
+    const nome = r.profiles?.nome;
+    if (nome && !t.colaboradores.includes(nome)) t.colaboradores.push(nome);
+    mapa.set(chave, t);
+  }
+  return [...mapa.values()].sort((a, b) => b.ultimaVisita.localeCompare(a.ultimaVisita) || b.trabalhos - a.trabalhos);
 }

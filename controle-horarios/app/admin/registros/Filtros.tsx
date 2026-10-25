@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Download, Filter, Search, X } from "lucide-react";
 import { Campo, Selecao } from "@/components/ui/Campo";
 import { classesBotao } from "@/components/ui/estilos";
+import { IndicadorLink } from "@/components/ui/IndicadorLink";
 import { filtrosParaURL, type Filtros as TFiltros } from "@/lib/consultas";
 import type { Perfil } from "@/lib/tipos";
 
@@ -44,7 +45,7 @@ export function Filtros({ filtros, colaboradores }: { filtros: TFiltros; colabor
           <Filter className="size-4" aria-hidden /> Filtrar
         </button>
         <Link href="/admin/registros" className={classesBotao("fantasma", "md")}>
-          <X className="size-4" aria-hidden /> Limpar
+          <X className="size-4" aria-hidden /> Limpar <IndicadorLink />
         </Link>
         <a href={`/admin/registros/exportar?${filtrosParaURL(filtros)}`} className={classesBotao("secundario", "md", "sm:ml-auto")} download>
           <Download className="size-4" aria-hidden /> Exportar CSV/Excel

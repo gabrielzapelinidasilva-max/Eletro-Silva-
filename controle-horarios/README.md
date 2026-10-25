@@ -19,9 +19,10 @@ Aplicativo web para os **eletricistas** registrarem chegada, saída e o serviço
 - **Meus registros**: histórico do mais recente para o mais antigo. Só os registros **de hoje** podem ser editados.
 - Total de horas de hoje, da semana (a partir de segunda-feira) e do mês.
 
-**Administrador** (três abas)
+**Administrador** (quatro abas)
 - **Resumo**: quem está trabalhando agora, horas da equipe no dia, na semana e no mês, e os últimos registros.
 - **Registros**: todos os registros, com filtros (colaborador, período, cliente), busca por texto, detalhes, edição, exclusão (pede confirmação), total de horas por colaborador e botão **Exportar CSV/Excel**.
+- **Histórico**: a base com **todos os trabalhos já feitos**, desde o primeiro registro, organizados por mês e dia, com o serviço e as observações completos. Tem busca, filtro por colaborador, cliente e período, exportação, e a visão **Por cliente** (quantas vezes cada cliente foi atendido, total de horas, primeira e última visita e quem atendeu; toque no cliente para ver todos os trabalhos dele).
 - **Colaboradores**: adicionar, editar, redefinir senha e ativar/desativar. Quem está desativado não consegue entrar, mas o histórico dele continua guardado.
 
 **Segurança**: as regras ficam no próprio banco (Row Level Security). Mesmo que alguém tente acessar os dados "por fora", o eletricista só enxerga os próprios registros e só cria ou altera registros de hoje. Só o administrador vê e altera tudo.
@@ -159,6 +160,7 @@ controle-horarios/
 │   ├── admin/              área do administrador
 │   │   ├── page.tsx        aba Resumo
 │   │   ├── registros/      aba Registros (+ exportar CSV)
+│   │   ├── historico/      aba Histórico (todos os trabalhos, por data ou por cliente)
 │   │   └── colaboradores/  aba Colaboradores (usa a service role, só no servidor)
 │   └── actions.ts          sair (logout)
 ├── components/             componentes reutilizáveis (botões, campos, modal, toasts...)
