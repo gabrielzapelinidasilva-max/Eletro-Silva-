@@ -28,12 +28,13 @@ export type LancamentoCusto = {
 };
 
 export type Calculo = {
-  /** Valor cobrado pelo serviço + material (o material é da loja: entra como ganho). */
+  /** Serviço cobrado + material + mão de obra (material e mão de obra são nossos: entram como ganho). */
   receita: number;
   custoGasolina: number;
   litros: number;
-  custoMaoDeObra: number;
-  /** Gasolina + mão de obra. */
+  /** Horas × valor da hora (ganho). */
+  maoDeObra: number;
+  /** Só a gasolina. */
   custoTotal: number;
   lucro: number;
   /** Percentual de lucro sobre a receita (null se a receita for zero). */
@@ -43,9 +44,9 @@ export type Calculo = {
 const arredondar = (n: number) => Math.round(n * 100) / 100;
 
 /**
- * Receita = valor do serviço + valor do material (o material é nosso, vira ganho).
- * Custos = gasolina (km ÷ km/l × preço do litro) + mão de obra (horas × valor da hora).
- * Lucro = receita − custos; % = lucro ÷ receita.
+ * Ganhos = valor do serviço + material + mão de obra (horas × valor da hora): material e mão de obra são nossos.
+ * Gastos = gasolina (km ÷ km/l × preço do litro).
+ * Lucro = ganhos − gastos; % = lucro ÷ ganhos.
  */
 export function calcular(l: {
   valor_material: number; km_rodados: number; consumo_km_l: number | null; preco_gasolina: number;
@@ -53,12 +54,12 @@ export function calcular(l: {
 }): Calculo {
   const litros = l.consumo_km_l && l.consumo_km_l > 0 ? l.km_rodados / l.consumo_km_l : 0;
   const custoGasolina = arredondar(litros * l.preco_gasolina);
-  const custoMaoDeObra = arredondar(l.horas * l.valor_hora);
-  const custoTotal = arredondar(custoGasolina + custoMaoDeObra);
-  const receita = arredondar(l.valor_servico + l.valor_material);
+  const maoDeObra = arredondar(l.horas * l.valor_hora);
+  const custoTotal = custoGasolina;
+  const receita = arredondar(l.valor_servico + l.valor_material + maoDeObra);
   const lucro = arredondar(receita - custoTotal);
   const margem = receita > 0 ? (lucro / receita) * 100 : null;
-  return { receita, custoGasolina, litros, custoMaoDeObra, custoTotal, lucro, margem };
+  return { receita, custoGasolina, litros, maoDeObra, custoTotal, lucro, margem };
 }
 
 /**

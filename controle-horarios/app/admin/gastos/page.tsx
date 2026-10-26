@@ -45,7 +45,7 @@ export default async function PaginaGastos({ searchParams }: { searchParams: Pro
       a.faturamento += c.receita;
       a.material += l.valor_material;
       a.gasolina += c.custoGasolina;
-      a.maoDeObra += c.custoMaoDeObra;
+      a.maoDeObra += c.maoDeObra;
       a.custos += c.custoTotal;
       a.lucro += c.lucro;
       return a;
@@ -59,7 +59,7 @@ export default async function PaginaGastos({ searchParams }: { searchParams: Pro
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold text-slate-900">Controle de gastos</h1>
-        <p className="text-slate-500">Ganhos (serviço + material), gastos (gasolina + mão de obra) e lucro de cada serviço. Período de {formatarData(de)} a {formatarData(ate)}.</p>
+        <p className="text-slate-500">Ganhos (serviço + material + mão de obra), gastos (gasolina) e lucro de cada serviço. Período de {formatarData(de)} a {formatarData(ate)}.</p>
       </div>
 
       <form method="get" className="flex flex-wrap items-end gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
@@ -74,8 +74,8 @@ export default async function PaginaGastos({ searchParams }: { searchParams: Pro
       </form>
 
       <section aria-label="Totais do período" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Indicador rotulo="Faturamento" valor={formatarMoeda(tot.faturamento)} detalhe={`serviços + material · ${lancamentos.length} ${lancamentos.length === 1 ? "serviço" : "serviços"}`} />
-        <Indicador rotulo="Custos" valor={formatarMoeda(tot.custos)} detalhe="gasolina + mão de obra" />
+        <Indicador rotulo="Faturamento" valor={formatarMoeda(tot.faturamento)} detalhe={`serviço + material + mão de obra · ${lancamentos.length} ${lancamentos.length === 1 ? "serviço" : "serviços"}`} />
+        <Indicador rotulo="Custos" valor={formatarMoeda(tot.custos)} detalhe="gasolina" />
         <Indicador rotulo={tot.lucro < 0 ? "Prejuízo" : "Lucro"} valor={formatarMoeda(tot.lucro)} detalhe={tot.lucro < 0 ? "os gastos passaram dos ganhos" : "faturamento − custos"} destaque />
         <Indicador rotulo="Lucro (%)" valor={formatarMargem(margem)} detalhe="sobre o faturamento" />
       </section>
@@ -84,8 +84,8 @@ export default async function PaginaGastos({ searchParams }: { searchParams: Pro
         <section aria-label="Detalhe dos ganhos e gastos" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <MiniTotal rotulo="Serviços cobrados" valor={tot.servicos} ganho />
           <MiniTotal rotulo="Material (ganho)" valor={tot.material} ganho />
+          <MiniTotal rotulo="Mão de obra (ganho)" valor={tot.maoDeObra} ganho />
           <MiniTotal rotulo="Gasolina" valor={tot.gasolina} />
-          <MiniTotal rotulo="Mão de obra" valor={tot.maoDeObra} />
         </section>
       )}
 

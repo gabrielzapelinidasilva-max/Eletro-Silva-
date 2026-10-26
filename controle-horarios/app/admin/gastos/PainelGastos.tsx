@@ -136,13 +136,12 @@ function CartaoLancamento({ lancamento: l, aoEditar, aoExcluir }: { lancamento: 
           <dt className="mb-1 text-[11px] font-bold uppercase tracking-wide text-emerald-800">Ganhos</dt>
           <Linha rotulo="Serviço cobrado" valor={l.valor_servico} />
           <Linha rotulo="Material" valor={l.valor_material} />
+          <Linha rotulo="Mão de obra" valor={c.maoDeObra} />
           <Linha rotulo="Total" valor={c.receita} forte />
         </dl>
         <dl className="rounded-xl bg-slate-50 px-3 py-2 text-sm ring-1 ring-slate-100">
           <dt className="mb-1 text-[11px] font-bold uppercase tracking-wide text-slate-600">Gastos</dt>
-          <Linha rotulo="Gasolina" valor={c.custoGasolina} />
-          <Linha rotulo="Mão de obra" valor={c.custoMaoDeObra} />
-          <Linha rotulo="Total" valor={c.custoTotal} forte />
+          <Linha rotulo="Gasolina" valor={c.custoGasolina} forte />
         </dl>
       </div>
       <div className="mt-3 flex justify-end gap-2">
@@ -253,6 +252,20 @@ function FormLancamento({ lancamento: l, veiculos, config, hoje, aoConcluir }: P
         </div>
       </Grupo>
 
+      <Grupo icone={<Wrench className="size-4" aria-hidden />} titulo="Mão de obra (ganho)">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {ligado ? (
+            <>
+              <input type="hidden" name="horas" value={v.horas} />
+              <Campo rotulo="Horas trabalhadas" value={v.horas || "0"} disabled ajuda="Vem do registro de chegada e saída." />
+            </>
+          ) : (
+            <Campo rotulo="Horas trabalhadas" name="horas" inputMode="decimal" placeholder="Ex.: 3,5 ou 3:30" value={v.horas} onChange={mudar("horas")} erro={e.horas} />
+          )}
+          <CampoDinheiro rotulo="Valor da hora" name="valor_hora" value={v.valor_hora} onChange={mudar("valor_hora")} erro={e.valor_hora} />
+        </div>
+      </Grupo>
+
       <Grupo icone={<Fuel className="size-4" aria-hidden />} titulo="Gasolina">
         <div className="grid gap-4 sm:grid-cols-3">
           <Selecao rotulo="Carro" name="veiculo_id" value={v.veiculo_id} onChange={mudar("veiculo_id")} erro={e.veiculo_id}>
@@ -269,20 +282,6 @@ function FormLancamento({ lancamento: l, veiculos, config, hoje, aoConcluir }: P
             {formatarNumero(lerNumero(v.km_rodados) ?? 0, 1)} km ÷ {formatarNumero(consumo)} km/l = {formatarNumero(calculo.litros)} litros × {formatarMoeda(lerNumero(v.preco_gasolina) ?? 0)} = <strong>{formatarMoeda(calculo.custoGasolina)}</strong>
           </p>
         )}
-      </Grupo>
-
-      <Grupo icone={<Wrench className="size-4" aria-hidden />} titulo="Mão de obra do eletricista">
-        <div className="grid gap-4 sm:grid-cols-2">
-          {ligado ? (
-            <>
-              <input type="hidden" name="horas" value={v.horas} />
-              <Campo rotulo="Horas trabalhadas" value={v.horas || "0"} disabled ajuda="Vem do registro de chegada e saída." />
-            </>
-          ) : (
-            <Campo rotulo="Horas trabalhadas" name="horas" inputMode="decimal" placeholder="Ex.: 3,5 ou 3:30" value={v.horas} onChange={mudar("horas")} erro={e.horas} />
-          )}
-          <CampoDinheiro rotulo="Valor da hora" name="valor_hora" value={v.valor_hora} onChange={mudar("valor_hora")} erro={e.valor_hora} />
-        </div>
       </Grupo>
 
       <Resumo calculo={calculo} material={lerNumero(v.valor_material) ?? 0} valorServico={lerNumero(v.valor_servico) ?? 0} />
@@ -315,12 +314,12 @@ function Resumo({ calculo: c, material, valorServico }: { calculo: Calculo; mate
           <dt className="text-[11px] font-bold uppercase tracking-wide text-emerald-800">Ganhos</dt>
           <dd className="flex justify-between"><span className="text-slate-500">Serviço</span><span className="tabular-nums">{formatarMoeda(valorServico)}</span></dd>
           <dd className="flex justify-between"><span className="text-slate-500">Material</span><span className="tabular-nums">{formatarMoeda(material)}</span></dd>
+          <dd className="flex justify-between"><span className="text-slate-500">Mão de obra</span><span className="tabular-nums">{formatarMoeda(c.maoDeObra)}</span></dd>
           <dd className="flex justify-between font-bold"><span>Total</span><span className="tabular-nums">{formatarMoeda(c.receita)}</span></dd>
         </dl>
         <dl>
           <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-600">Gastos</dt>
           <dd className="flex justify-between"><span className="text-slate-500">Gasolina</span><span className="tabular-nums">{formatarMoeda(c.custoGasolina)}</span></dd>
-          <dd className="flex justify-between"><span className="text-slate-500">Mão de obra</span><span className="tabular-nums">{formatarMoeda(c.custoMaoDeObra)}</span></dd>
           <dd className="flex justify-between font-bold"><span>Total</span><span className="tabular-nums">{formatarMoeda(c.custoTotal)}</span></dd>
         </dl>
       </div>
