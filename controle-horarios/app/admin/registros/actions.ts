@@ -44,5 +44,5 @@ export async function adminExcluirRegistro(_a: Resultado, form: FormData): Promi
   if (!data?.length) return falha("Registro não encontrado.");
 
   revalidatePath("/admin", "layout");
-  return sucesso("Registro excluído.");
+  return sucesso("Registro movido para a Lixeira. Se foi sem querer, restaure por lá.");
 }

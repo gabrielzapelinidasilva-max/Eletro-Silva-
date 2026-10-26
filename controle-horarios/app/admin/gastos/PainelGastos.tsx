@@ -84,15 +84,15 @@ export function PainelGastos({ lancamentos, veiculos, config, hoje }: Props) {
             <input type="hidden" name="id" value={janela.lancamento.id} />
             <p className="text-slate-600">
               {janela.lancamento.registro_id ? (
-                <>O serviço <strong>{janela.lancamento.cliente}</strong> ({formatarData(janela.lancamento.data)}) foi registrado por um eletricista. Excluir aqui apaga <strong>o registro inteiro</strong> (horário, serviço e gastos).</>
+                <>O serviço <strong>{janela.lancamento.cliente}</strong> ({formatarData(janela.lancamento.data)}) foi registrado por um eletricista. Excluir aqui manda <strong>o registro inteiro</strong> (horário, serviço e gastos) para a <strong>Lixeira</strong>. Dá para restaurar por 30 dias.</>
               ) : (
-                <>O lançamento <strong>{janela.lancamento.cliente}</strong> ({formatarData(janela.lancamento.data)}) será excluído.</>
+                <>O lançamento <strong>{janela.lancamento.cliente}</strong> ({formatarData(janela.lancamento.data)}) vai para a <strong>Lixeira</strong>. Dá para restaurar por 30 dias.</>
               )}
             </p>
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Botao variante="fantasma" onClick={fechar}>Cancelar</Botao>
               <BotaoEnviar variante="perigo" textoCarregando="Excluindo...">
-                <Trash2 className="size-5" aria-hidden /> Sim, excluir
+                <Trash2 className="size-5" aria-hidden /> Sim, mover para a lixeira
               </BotaoEnviar>
             </div>
           </form>

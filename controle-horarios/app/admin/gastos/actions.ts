@@ -128,7 +128,7 @@ export async function excluirLancamento(_a: Resultado, form: FormData): Promise<
     : await supabase.from("custos_servico").delete().eq("id", id).select("id");
   if (error || !data?.length) return falha("Não foi possível excluir. Tente novamente.");
   revalidatePath("/admin", "layout");
-  return sucesso(atual.registro_id ? "Serviço e gastos excluídos." : "Lançamento excluído.");
+  return sucesso(`${atual.registro_id ? "Serviço" : "Lançamento"} movido para a Lixeira. Se foi sem querer, restaure por lá.`);
 }
 
 export async function salvarConfiguracoes(_a: Resultado, form: FormData): Promise<Resultado> {

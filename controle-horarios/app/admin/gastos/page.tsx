@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Filter, X } from "lucide-react";
 import { PainelGastos } from "./PainelGastos";
+import { LinkLixeira } from "@/components/LinkLixeira";
 import { ConfiguracoesGastos } from "./ConfiguracoesGastos";
 import { Indicador } from "@/components/ui/Cartao";
 import { Campo } from "@/components/ui/Campo";
@@ -57,9 +58,12 @@ export default async function PaginaGastos({ searchParams }: { searchParams: Pro
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-slate-900">Controle de gastos</h1>
-        <p className="text-slate-500">Ganhos (serviço + material + mão de obra), gastos (gasolina) e lucro de cada serviço. Período de {formatarData(de)} a {formatarData(ate)}.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-extrabold text-slate-900">Controle de gastos</h1>
+          <p className="text-slate-500">Ganhos (serviço + material + mão de obra), gastos (gasolina) e lucro de cada serviço. Período de {formatarData(de)} a {formatarData(ate)}.</p>
+        </div>
+        <LinkLixeira />
       </div>
 
       <form method="get" className="flex flex-wrap items-end gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">

@@ -7,7 +7,7 @@ import { FormRegistro } from "@/components/registros/FormRegistro";
 import { ItemRegistro } from "@/components/registros/ItemRegistro";
 import { Modal } from "@/components/ui/Modal";
 import { Botao, BotaoEnviar } from "@/components/ui/Botao";
-import { Selo } from "@/components/ui/Estados";
+import { EstadoVazio, Selo } from "@/components/ui/Estados";
 import { useToastDoResultado } from "@/components/ui/Toast";
 import { formatarData, formatarDataHora, formatarHora } from "@/lib/datas";
 import { formatarMinutos } from "@/lib/horas";
@@ -38,6 +38,8 @@ export function TabelaRegistros({ registros, veiculos }: { registros: RegistroCo
 
   return (
     <>
+      {registros.length === 0 && <EstadoVazio titulo="Nenhum registro encontrado" texto="Tente mudar o período ou limpar os filtros." />}
+
       {/* Celular: cartões */}
       <ul className="space-y-3 md:hidden">
         {registros.map((r) => (
@@ -46,7 +48,7 @@ export function TabelaRegistros({ registros, veiculos }: { registros: RegistroCo
       </ul>
 
       {/* Telas maiores: tabela */}
-      <div className="hidden overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 md:block">
+      <div className={`hidden overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 ${registros.length ? "md:block" : ""}`}>
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr>
@@ -91,12 +93,12 @@ export function TabelaRegistros({ registros, veiculos }: { registros: RegistroCo
             <input type="hidden" name="id" value={janela.registro.id} />
             <p className="text-slate-600">
               O registro de <strong>{janela.registro.profiles?.nome}</strong> em <strong>{formatarData(janela.registro.data)}</strong> (
-              {janela.registro.cliente}) será excluído. Esta ação não pode ser desfeita.
+              {janela.registro.cliente}) vai para a <strong>Lixeira</strong>, junto com os gastos dele. Dá para restaurar por 30 dias.
             </p>
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Botao variante="fantasma" onClick={fechar}>Cancelar</Botao>
               <BotaoEnviar variante="perigo" textoCarregando="Excluindo...">
-                <Trash2 className="size-5" aria-hidden /> Sim, excluir
+                <Trash2 className="size-5" aria-hidden /> Sim, mover para a lixeira
               </BotaoEnviar>
             </div>
           </form>
