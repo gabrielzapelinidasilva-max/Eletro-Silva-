@@ -14,7 +14,7 @@ type Props = {
   registro: Registro;
   veiculos: VeiculoOpcao[];
   acao: (anterior: Resultado, form: FormData) => Promise<Resultado>;
-  /** O administrador pode trocar a data; o eletricista não. */
+  /** O administrador pode trocar a data e ver/preencher material e valor cobrado; o eletricista não. */
   permitirData?: boolean;
   aoConcluir: () => void;
 };
@@ -42,7 +42,7 @@ export function FormRegistro({ registro, veiculos, acao, permitirData, aoConclui
       <Campo rotulo="Cliente" name="cliente" defaultValue={v("cliente", registro.cliente)} erro={e.cliente} obrigatorio maxLength={200} />
       <AreaTexto rotulo="Serviço realizado" name="servico" defaultValue={v("servico", registro.servico ?? "")} erro={e.servico} ajuda="Obrigatório quando houver saída." maxLength={2000} />
       <AreaTexto rotulo="Observações" name="observacoes" defaultValue={v("observacoes", registro.observacoes ?? "")} erro={e.observacoes} rows={4} maxLength={5000} />
-      <CamposGastosRegistro veiculos={veiculos} inicial={registro} digitado={estado.valores} erros={e} />
+      <CamposGastosRegistro veiculos={veiculos} inicial={registro} digitado={estado.valores} erros={e} mostrarValores={permitirData} />
       <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
         <Botao variante="fantasma" onClick={aoConcluir}>Cancelar</Botao>
         <BotaoEnviar textoCarregando="Salvando...">

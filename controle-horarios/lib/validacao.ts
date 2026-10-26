@@ -61,12 +61,15 @@ export function mensagemErroBanco(erro: { message?: string; code?: string } | nu
 export type GastosRegistro = {
   veiculo_id: string | null;
   km_rodados: number;
-  valor_material: number;
-  valor_servico: number | null;
+  valor_material?: number;
+  valor_servico?: number | null;
 };
 
-/** Lê e valida carro, km, material e valor cobrado do formulário de registro. */
-export function lerGastosRegistro(form: FormData): { dados: GastosRegistro; erros: Record<string, string> } {
+/**
+ * Lê e valida carro e km do formulário de registro. Material e valor cobrado só
+ * entram com `incluirValores` (formulário do administrador); o eletricista não os envia.
+ */
+export function lerGastosRegistro(form: FormData, { incluirValores = false } = {}): { dados: GastosRegistro; erros: Record<string, string> } {
   const erros: Record<string, string> = {};
   const num = (campo: string, rotulo: string) => {
     const bruto = texto(form, campo);
@@ -82,9 +85,11 @@ export function lerGastosRegistro(form: FormData): { dados: GastosRegistro; erro
   const dados: GastosRegistro = {
     veiculo_id: /^[0-9a-f-]{36}$/i.test(veiculoId) ? veiculoId : null,
     km_rodados: num("km_rodados", "Km") ?? 0,
-    valor_material: num("valor_material", "Valor do material") ?? 0,
-    valor_servico: num("valor_servico", "Valor cobrado"),
   };
+  if (incluirValores) {
+    dados.valor_material = num("valor_material", "Valor do material") ?? 0;
+    dados.valor_servico = num("valor_servico", "Valor cobrado");
+  }
   if (dados.km_rodados > 0 && !dados.veiculo_id) erros.veiculo_id = "Escolha o carro usado.";
   return { dados, erros };
 }

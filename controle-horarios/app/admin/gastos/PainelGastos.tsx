@@ -35,7 +35,7 @@ export function PainelGastos({ lancamentos, veiculos, config, hoje }: Props) {
           <h2 className="text-lg font-bold text-slate-900">Serviços</h2>
           <p className="text-sm text-slate-500">
             <Zap className="mr-1 inline size-4 text-amber-500" aria-hidden />
-            Os serviços registrados pelos eletricistas entram aqui sozinhos.
+            Os serviços registrados pelos eletricistas entram aqui sozinhos (com horas, carro e km). Você completa o material e o valor cobrado.
           </p>
         </div>
         <Botao variante="secundario" onClick={() => setJanela({ tipo: "novo" })}>
@@ -46,7 +46,7 @@ export function PainelGastos({ lancamentos, veiculos, config, hoje }: Props) {
       {faltando > 0 && (
         <p className="mb-3 flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-200">
           <AlertTriangle className="size-5 shrink-0" aria-hidden />
-          {faltando === 1 ? "1 serviço está" : `${faltando} serviços estão`} sem o valor cobrado. Toque em “Completar” no serviço.
+          {faltando === 1 ? "1 serviço está" : `${faltando} serviços estão`} esperando o material e o valor cobrado. Toque em “Completar” no serviço.
         </p>
       )}
 
@@ -122,7 +122,7 @@ function CartaoLancamento({ lancamento: l, aoEditar, aoExcluir }: { lancamento: 
             ) : (
               <Selo cor="cinza">Avulso</Selo>
             )}
-            {semValor && <Selo cor="ambar">Falta o valor cobrado</Selo>}
+            {semValor && <Selo cor="ambar">Falta completar os valores</Selo>}
           </div>
           {l.descricao && <p className="mt-1.5 line-clamp-2 text-sm text-slate-600">{l.descricao}</p>}
         </div>

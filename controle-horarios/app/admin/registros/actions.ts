@@ -11,7 +11,7 @@ export async function adminEditarRegistro(_a: Resultado, form: FormData): Promis
   await exigirAdmin();
   const id = String(form.get("id") ?? "");
   const dados = lerRegistro(form);
-  const gastos = lerGastosRegistro(form);
+  const gastos = lerGastosRegistro(form, { incluirValores: true });
   const erros = { ...validarRegistro(dados), ...gastos.erros };
   if (Object.keys(erros).length) return falhaValidacao(erros, form);
 
