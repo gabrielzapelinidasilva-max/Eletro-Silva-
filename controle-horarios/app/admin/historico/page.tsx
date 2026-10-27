@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarDays, ChevronLeft, ChevronRight, Clock, Download, Search, User, Users, X } from "lucide-react";
+import { ArrowDown, ArrowUp, CalendarDays, ChevronLeft, ChevronRight, Clock, Download, Search, User, Users, X } from "lucide-react";
 import { Cartao, Indicador } from "@/components/ui/Cartao";
 import { Campo, Selecao } from "@/components/ui/Campo";
 import { EstadoVazio, Selo } from "@/components/ui/Estados";
@@ -12,6 +12,7 @@ import { buscarRegistros, filtrosParaURL, INICIO_HISTORICO, lerFiltros, totaisPo
 import { dataPorExtenso, formatarData, formatarHora, hojeSP } from "@/lib/datas";
 import { formatarMinutos, somarMinutos } from "@/lib/horas";
 import { formatarMoeda, formatarNumero } from "@/lib/gastos";
+import { Anexos } from "@/components/registros/Anexos";
 import type { Perfil, RegistroComPerfil } from "@/lib/tipos";
 
 export const metadata: Metadata = { title: "Histórico" };
@@ -91,7 +92,7 @@ export default async function PaginaHistorico({ searchParams }: { searchParams: 
           texto={temFiltro ? "Tente outra busca ou limpe os filtros." : "Quando os eletricistas registrarem os atendimentos, eles aparecem aqui."}
         />
       ) : visao === "clientes" ? (
-        <ListaClientes clientes={clientes} filtros={filtros} />
+        <ListaClientes clientes={clientes} filtros={filtros} params={params} />
       ) : (
         <LinhaDoTempo registros={registros} filtros={filtros} pagina={Number(params.pagina) || 1} />
       )}
@@ -247,16 +248,60 @@ function CartaoTrabalho({ registro: r }: { registro: RegistroComPerfil }) {
           <span className="font-semibold text-slate-700">Obs.: </span>{r.observacoes}
         </p>
       )}
+      <Anexos registro={r} compacto />
     </li>
   );
 }
 
-/** Um cartão por cliente: quantas vezes foi atendido, horas, última visita e quem atendeu. */
-function ListaClientes({ clientes, filtros }: { clientes: ReturnType<typeof totaisPorCliente>; filtros: Filtros }) {
+type Ordem = "recentes" | "mais" | "menos";
+const PRAZOS = [0, 30, 60, 90, 180, 365];
+
+function diasEntre(de: string, ate: string) {
+  return Math.round((Date.parse(`${ate}T00:00:00Z`) - Date.parse(`${de}T00:00:00Z`)) / 86_400_000);
+}
+
+/**
+ * Um cartão por cliente: trabalhos, horas, última visita, quem atendeu e há quantos dias
+ * está sem serviço. Dá para ordenar por tempo sem serviço (seta) e filtrar quem está parado há X dias.
+ */
+function ListaClientes({ clientes, filtros, params }: { clientes: ReturnType<typeof totaisPorCliente>; filtros: Filtros; params: Parametros }) {
+  const hoje = hojeSP();
+  const ordem: Ordem = params.ordem === "mais" || params.ordem === "menos" ? params.ordem : "recentes";
+  const parado = PRAZOS.includes(Number(params.parado)) ? Number(params.parado) : 0;
+  const lista = clientes
+    .map((c) => ({ ...c, diasSem: diasEntre(c.ultimaVisita, hoje) }))
+    .filter((c) => c.diasSem >= parado)
+    .sort((a, b) => (ordem === "menos" ? a.diasSem - b.diasSem : ordem === "mais" ? b.diasSem - a.diasSem : 0));
+  const url = (extra: Record<string, string | number | undefined>) =>
+    urlHistorico(filtros, { ver: "clientes", ordem: ordem === "recentes" ? undefined : ordem, parado: parado || undefined, ...extra });
+  const proxima: Ordem = ordem === "mais" ? "menos" : "mais";
+
   return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200">
+        <Link href={url({ ordem: proxima })} className={classesBotao(ordem === "recentes" ? "secundario" : "primario", "md")}
+          title={ordem === "mais" ? "Mostrando primeiro quem está há MAIS tempo sem serviço. Toque para inverter." : "Toque para ver primeiro quem está há mais tempo sem serviço."}>
+          {ordem === "menos" ? <ArrowUp className="size-4" aria-hidden /> : <ArrowDown className="size-4" aria-hidden />}
+          Tempo sem serviço: {ordem === "menos" ? "menos tempo primeiro" : ordem === "mais" ? "mais tempo primeiro" : "ordenar"}
+          <IndicadorLink />
+        </Link>
+        <span className="ml-1 text-sm text-slate-500">Sem serviço há:</span>
+        <div className="flex flex-wrap gap-1">
+          {PRAZOS.map((d) => (
+            <Link key={d} href={url({ parado: d || undefined })}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold ring-1 ${parado === d ? "bg-marca-600 text-white ring-marca-600" : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50"}`}>
+              {d === 0 ? "Todos" : `+${d} dias`}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {lista.length === 0 ? (
+        <EstadoVazio titulo="Nenhum cliente nessa faixa" texto={`Nenhum cliente está há mais de ${parado} dias sem serviço.`} />
+      ) : (
     <Cartao className="p-0 sm:p-0">
       <ul className="divide-y divide-slate-100">
-        {clientes.map((c) => (
+        {lista.map((c) => (
           <li key={c.cliente}>
             <Link
                 href={urlHistorico({ ...filtros, cliente: c.cliente }, { ver: undefined, pagina: undefined })}
@@ -264,7 +309,10 @@ function ListaClientes({ clientes, filtros }: { clientes: ReturnType<typeof tota
             >
               <div className="min-w-0">
                 <p className="truncate font-bold text-slate-900">{c.cliente}</p>
-                <p className="mt-0.5 text-xs text-slate-500">
+                <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
+                  <Selo cor={c.diasSem >= 180 ? "ambar" : c.diasSem >= 60 ? "cinza" : "verde"}>
+                    {c.diasSem === 0 ? "Atendido hoje" : `Há ${c.diasSem} ${c.diasSem === 1 ? "dia" : "dias"} sem serviço`}
+                  </Selo>
                   Última visita {formatarData(c.ultimaVisita)}
                   {c.trabalhos > 1 && ` · primeira em ${formatarData(c.primeiraVisita)}`}
                 </p>
@@ -283,5 +331,7 @@ function ListaClientes({ clientes, filtros }: { clientes: ReturnType<typeof tota
         ))}
       </ul>
     </Cartao>
+      )}
+    </div>
   );
 }

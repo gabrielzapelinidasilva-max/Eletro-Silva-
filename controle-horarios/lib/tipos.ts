@@ -26,6 +26,11 @@ export type Registro = {
   valor_material: number;
   /** null = não informado */
   valor_servico: number | null;
+  // Anexos opcionais da saída (caminhos no Storage "servicos")
+  fotos_antes: string[];
+  fotos_depois: string[];
+  assinatura: string | null;
+  assinatura_nome: string | null;
   criado_em: string;
   atualizado_em: string;
 };

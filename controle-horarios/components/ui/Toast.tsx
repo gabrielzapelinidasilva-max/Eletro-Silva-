@@ -23,7 +23,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <Contexto.Provider value={mostrar}>
       {children}
-      <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-4 z-[60] flex flex-col items-center gap-2 px-4 sm:bottom-auto sm:top-4 sm:items-end">
+      <div aria-live="polite" className="print:hidden pointer-events-none fixed inset-x-0 bottom-4 z-[60] flex flex-col items-center gap-2 px-4 sm:bottom-auto sm:top-4 sm:items-end">
         {itens.map((i) => (
           <div
             key={i.id}

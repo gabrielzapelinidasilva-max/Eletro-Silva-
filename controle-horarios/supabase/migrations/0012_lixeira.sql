@@ -1,5 +1,5 @@
 -- Eletro Silva – Controle de Horários
--- Etapa 8: lixeira. O que o administrador exclui (serviço de eletricista ou lançamento avulso)
+-- Etapa 12: lixeira. O que o administrador exclui (serviço de eletricista ou lançamento avulso)
 -- vai para a lixeira com uma cópia completa e pode ser restaurado por 30 dias.
 
 create table if not exists public.lixeira (
@@ -91,12 +91,16 @@ begin
 
     insert into public.registros (
       id, usuario_id, data, hora_chegada, hora_saida, cliente, servico, observacoes,
-      veiculo_id, km_rodados, valor_material, valor_servico, criado_em
+      veiculo_id, km_rodados, valor_material, valor_servico, criado_em,
+      fotos_antes, fotos_depois, assinatura, assinatura_nome
     ) values (
       v_registro, (r ->> 'usuario_id')::uuid, (r ->> 'data')::date, (r ->> 'hora_chegada')::time, (r ->> 'hora_saida')::time,
       r ->> 'cliente', r ->> 'servico', r ->> 'observacoes',
       v_veiculo, coalesce((r ->> 'km_rodados')::numeric, 0), coalesce((r ->> 'valor_material')::numeric, 0),
-      (r ->> 'valor_servico')::numeric, coalesce((r ->> 'criado_em')::timestamptz, now())
+      (r ->> 'valor_servico')::numeric, coalesce((r ->> 'criado_em')::timestamptz, now()),
+      coalesce(array(select jsonb_array_elements_text(coalesce(r -> 'fotos_antes', '[]'::jsonb))), '{}'),
+      coalesce(array(select jsonb_array_elements_text(coalesce(r -> 'fotos_depois', '[]'::jsonb))), '{}'),
+      r ->> 'assinatura', r ->> 'assinatura_nome'
     );
   end if;
 

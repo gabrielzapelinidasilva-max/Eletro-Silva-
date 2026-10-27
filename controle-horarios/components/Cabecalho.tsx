@@ -5,7 +5,7 @@ import type { Perfil } from "@/lib/tipos";
 
 export function Cabecalho({ perfil, children }: { perfil: Perfil; children?: React.ReactNode }) {
   return (
-    <header className="sticky top-0 z-40 bg-gradient-to-r from-marca-800 via-marca-600 to-marca-700 text-white shadow-md">
+    <header className="sticky top-0 z-40 print:hidden bg-gradient-to-r from-marca-800 via-marca-600 to-marca-700 text-white shadow-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2.5">
         <div className="flex min-w-0 items-center gap-3">
           <Logo className="h-11 w-auto shrink-0 sm:h-12" />

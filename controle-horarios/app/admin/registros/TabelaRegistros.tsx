@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { adminEditarRegistro, adminExcluirRegistro } from "./actions";
 import { FormRegistro } from "@/components/registros/FormRegistro";
+import { Anexos } from "@/components/registros/Anexos";
 import { ItemRegistro } from "@/components/registros/ItemRegistro";
 import { Modal } from "@/components/ui/Modal";
 import { Botao, BotaoEnviar } from "@/components/ui/Botao";
@@ -132,6 +133,7 @@ function Detalhes({ registro: r, veiculos, aoEditar }: { registro: RegistroComPe
         {linha("Criado em", formatarDataHora(r.criado_em))}
         {linha("Atualizado em", formatarDataHora(r.atualizado_em))}
       </dl>
+      <Anexos registro={r} />
       <div className="flex justify-end">
         <Botao variante="secundario" onClick={aoEditar}>
           <Pencil className="size-4" aria-hidden /> Editar

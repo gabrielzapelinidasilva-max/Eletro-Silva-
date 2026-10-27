@@ -3,6 +3,10 @@
 -- (Junção dos arquivos de supabase/migrations/, na ordem.)
 
 
+-- Eletro Silva – Controle de Horários
+-- Etapa 1/2: tabelas, funções e gatilhos.
+-- Rode no Supabase → SQL Editor → New query → cole tudo → Run.
+
 -- Perfis (um por usuário do Supabase Auth)
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
@@ -113,6 +117,11 @@ create trigger ao_mudar_email after update of email on auth.users
   execute function public.sincronizar_email_perfil();
 
 
+-- Eletro Silva – Controle de Horários
+-- Etapa 2/2: segurança (Row Level Security).
+-- Eletricista: vê só os próprios registros e só cria/edita registros de HOJE.
+-- Administrador: vê e gerencia tudo.
+
 alter table public.profiles enable row level security;
 alter table public.registros enable row level security;
 
@@ -165,6 +174,10 @@ revoke all on public.profiles from anon;
 revoke all on public.registros from anon;
 
 
+-- Eletro Silva – Controle de Horários
+-- Etapa 3: ninguém chama as funções internas direto pela API.
+-- (Gatilhos continuam funcionando; is_admin/is_ativo ficam só para usuários logados, pois o RLS usa.)
+
 revoke execute on function public.criar_perfil_novo_usuario() from public, anon, authenticated;
 revoke execute on function public.sincronizar_email_perfil() from public, anon, authenticated;
 revoke execute on function public.is_admin() from public, anon;
@@ -174,6 +187,11 @@ grant execute on function public.is_ativo() to authenticated;
 revoke all on public.profiles from anon;
 revoke all on public.registros from anon;
 
+
+-- Eletro Silva – Controle de Horários
+-- Etapa 4: funções para o ADMINISTRADOR gerenciar colaboradores sem precisar da chave service_role.
+-- Cada função confere, dentro do banco, se quem chamou é um administrador ativo.
+-- O app usa estas funções quando a variável SUPABASE_SERVICE_ROLE_KEY não está configurada.
 
 create extension if not exists pgcrypto with schema extensions;
 
@@ -287,6 +305,9 @@ grant execute on function public.admin_redefinir_senha(uuid, text) to authentica
 grant execute on function public.admin_alterar_status(uuid, boolean) to authenticated;
 
 
+-- Eletro Silva – Controle de Horários
+-- Etapa 5: controle de gastos e lucro por serviço (só o administrador acessa).
+
 -- Configurações gerais (uma única linha, id = 1)
 create table if not exists public.configuracoes (
   id smallint primary key default 1 check (id = 1),
@@ -356,6 +377,11 @@ revoke all on public.configuracoes from anon;
 revoke all on public.veiculos from anon;
 revoke all on public.custos_servico from anon;
 
+
+-- Eletro Silva – Controle de Horários
+-- Etapa 6: gastos automáticos a partir do registro do eletricista.
+-- O eletricista informa, ao registrar a saída, o carro, os km, o material e o valor cobrado.
+-- Um gatilho cria e mantém atualizado o lançamento em custos_servico (aba Gastos do admin).
 
 alter table public.registros add column if not exists veiculo_id uuid references public.veiculos (id) on delete set null;
 alter table public.registros add column if not exists km_rodados numeric(8, 1) not null default 0 check (km_rodados >= 0);
@@ -447,6 +473,11 @@ select r.id, r.data, r.cliente, r.servico, coalesce(r.minutos_trabalhados, 0) / 
    and not exists (select 1 from public.custos_servico c where c.registro_id = r.id);
 
 
+-- Eletro Silva – Controle de Horários
+-- Etapa 7: valor do material e valor cobrado só o ADMINISTRADOR define.
+-- O eletricista informa apenas carro e km. Se ele (ou qualquer usuário que não seja
+-- admin) tentar mudar esses valores, o banco mantém os valores atuais.
+
 create or replace function public.proteger_valores_do_registro()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
@@ -468,6 +499,201 @@ create or replace trigger registros_proteger_valores before insert or update on 
 
 revoke execute on function public.proteger_valores_do_registro() from public, anon, authenticated;
 
+
+-- Eletro Silva – Controle de Horários
+-- Etapa 8: gastos fixos por mês (salários, ferramentas, manutenção do carro...).
+-- O administrador cadastra os gastos fixos; quando o mês termina (último dia), o mês é
+-- "fechado": os gastos fixos daquele mês são copiados e descontados do lucro do mês.
+-- Os valores copiados podem ser editados depois, sem mexer nos outros meses.
+
+create table if not exists public.gastos_fixos (
+  id uuid primary key default gen_random_uuid(),
+  descricao text not null check (char_length(trim(descricao)) between 1 and 120),
+  categoria text not null default 'outro' check (categoria in ('salario', 'ferramentas', 'manutencao_carro', 'outro')),
+  valor numeric(10, 2) not null check (valor >= 0),
+  ativo boolean not null default true,
+  criado_em timestamptz not null default now()
+);
+
+-- Gastos fixos lançados em cada mês fechado
+create table if not exists public.gastos_fixos_mes (
+  id uuid primary key default gen_random_uuid(),
+  mes date not null check (extract(day from mes) = 1),
+  gasto_fixo_id uuid references public.gastos_fixos (id) on delete set null,
+  descricao text not null check (char_length(trim(descricao)) between 1 and 120),
+  categoria text not null default 'outro' check (categoria in ('salario', 'ferramentas', 'manutencao_carro', 'outro')),
+  valor numeric(10, 2) not null check (valor >= 0),
+  criado_em timestamptz not null default now()
+);
+create index if not exists gastos_fixos_mes_mes_idx on public.gastos_fixos_mes (mes);
+
+-- Meses já fechados (os gastos fixos já foram lançados)
+create table if not exists public.meses_fechados (
+  mes date primary key check (extract(day from mes) = 1),
+  fechado_em timestamptz not null default now()
+);
+
+alter table public.gastos_fixos enable row level security;
+alter table public.gastos_fixos_mes enable row level security;
+alter table public.meses_fechados enable row level security;
+do $$
+declare t text;
+begin
+  foreach t in array array['gastos_fixos', 'gastos_fixos_mes', 'meses_fechados'] loop
+    if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = t and policyname = t || ': so admin') then
+      execute format('create policy %I on public.%I for all to authenticated using (public.is_admin()) with check (public.is_admin())', t || ': so admin', t);
+    end if;
+  end loop;
+end $$;
+revoke all on public.gastos_fixos from anon;
+revoke all on public.gastos_fixos_mes from anon;
+revoke all on public.meses_fechados from anon;
+
+-- Fecha os meses que já terminaram (o mês atual fecha no último dia dele).
+-- Lança os gastos fixos ativos que já existiam até o fim de cada mês. Só administrador.
+create or replace function public.fechar_meses_pendentes()
+returns integer language plpgsql security definer set search_path = public as $$
+declare
+  v_hoje date := public.hoje_sp();
+  v_mes date;
+  v_ultimo date;
+  v_fechados integer := 0;
+begin
+  if not public.is_admin() then raise exception 'sem_permissao' using errcode = '42501'; end if;
+  select date_trunc('month', min(criado_em at time zone 'America/Sao_Paulo'))::date into v_mes from public.gastos_fixos;
+  if v_mes is null then return 0; end if;
+
+  -- Último mês que pode ser fechado: o atual se hoje é o último dia; senão o anterior.
+  if (date_trunc('month', v_hoje) + interval '1 month - 1 day')::date = v_hoje then
+    v_ultimo := date_trunc('month', v_hoje)::date;
+  else
+    v_ultimo := (date_trunc('month', v_hoje) - interval '1 month')::date;
+  end if;
+
+  while v_mes <= v_ultimo loop
+    if not exists (select 1 from public.meses_fechados where mes = v_mes) then
+      insert into public.gastos_fixos_mes (mes, gasto_fixo_id, descricao, categoria, valor)
+      select v_mes, g.id, g.descricao, g.categoria, g.valor
+        from public.gastos_fixos g
+       where g.ativo
+         and (g.criado_em at time zone 'America/Sao_Paulo')::date <= (v_mes + interval '1 month - 1 day')::date;
+      insert into public.meses_fechados (mes) values (v_mes);
+      v_fechados := v_fechados + 1;
+    end if;
+    v_mes := (v_mes + interval '1 month')::date;
+  end loop;
+  return v_fechados;
+end $$;
+
+revoke execute on function public.fechar_meses_pendentes() from public, anon;
+grant execute on function public.fechar_meses_pendentes() to authenticated;
+
+
+-- Eletro Silva – Controle de Horários
+-- Etapa 9: fotos do antes/depois e assinatura do cliente (opcionais) ao finalizar o serviço.
+-- Os arquivos ficam no Storage privado "servicos", na pasta do eletricista (id do usuário).
+
+alter table public.registros add column if not exists fotos_antes text[] not null default '{}';
+alter table public.registros add column if not exists fotos_depois text[] not null default '{}';
+alter table public.registros add column if not exists assinatura text;        -- caminho da imagem no Storage
+alter table public.registros add column if not exists assinatura_nome text check (assinatura_nome is null or char_length(assinatura_nome) <= 120);
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('servicos', 'servicos', false, 5242880, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do nothing;
+
+-- Cada usuário ativo envia arquivos só para a própria pasta; o admin vê todos.
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'servicos: enviar na propria pasta') then
+    create policy "servicos: enviar na propria pasta" on storage.objects for insert to authenticated
+      with check (bucket_id = 'servicos' and (storage.foldername(name))[1] = auth.uid()::text and public.is_ativo());
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'servicos: ver os proprios ou admin') then
+    create policy "servicos: ver os proprios ou admin" on storage.objects for select to authenticated
+      using (bucket_id = 'servicos' and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin()));
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'servicos: apagar os proprios ou admin') then
+    create policy "servicos: apagar os proprios ou admin" on storage.objects for delete to authenticated
+      using (bucket_id = 'servicos' and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin()));
+  end if;
+end $$;
+
+
+-- Eletro Silva – Controle de Horários
+-- Etapa 10: última localização de cada colaborador, enviada pelo celular enquanto
+-- ele tem um atendimento em andamento e o app está aberto. Só o admin vê.
+
+create table if not exists public.localizacoes (
+  usuario_id uuid primary key references public.profiles (id) on delete cascade,
+  latitude double precision not null check (latitude between -90 and 90),
+  longitude double precision not null check (longitude between -180 and 180),
+  precisao double precision,
+  registro_id uuid references public.registros (id) on delete set null,
+  atualizado_em timestamptz not null default now()
+);
+
+alter table public.localizacoes enable row level security;
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'localizacoes' and policyname = 'localizacao: ver a propria ou admin') then
+    create policy "localizacao: ver a propria ou admin" on public.localizacoes for select to authenticated
+      using (usuario_id = auth.uid() or public.is_admin());
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'localizacoes' and policyname = 'localizacao: enviar a propria') then
+    create policy "localizacao: enviar a propria" on public.localizacoes for insert to authenticated
+      with check (usuario_id = auth.uid() and public.is_ativo());
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'localizacoes' and policyname = 'localizacao: atualizar a propria') then
+    create policy "localizacao: atualizar a propria" on public.localizacoes for update to authenticated
+      using (usuario_id = auth.uid()) with check (usuario_id = auth.uid() and public.is_ativo());
+  end if;
+end $$;
+revoke all on public.localizacoes from anon;
+
+
+-- Eletro Silva – Controle de Horários
+-- Etapa 11: agenda de serviços. O admin agenda e move serviços entre dias;
+-- o eletricista vê os agendamentos que são dele.
+
+create table if not exists public.agendamentos (
+  id uuid primary key default gen_random_uuid(),
+  data date not null,
+  hora time(0),
+  cliente text not null check (char_length(trim(cliente)) between 1 and 200),
+  endereco text check (endereco is null or char_length(endereco) <= 300),
+  telefone text check (telefone is null or char_length(telefone) <= 30),
+  servico text check (servico is null or char_length(servico) <= 2000),
+  observacoes text check (observacoes is null or char_length(observacoes) <= 2000),
+  colaborador_id uuid references public.profiles (id) on delete set null,
+  status text not null default 'agendado' check (status in ('agendado', 'concluido', 'cancelado')),
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now()
+);
+create index if not exists agendamentos_data_idx on public.agendamentos (data);
+create index if not exists agendamentos_colaborador_idx on public.agendamentos (colaborador_id, data);
+
+create or replace trigger agendamentos_atualizado_em before update on public.agendamentos
+  for each row execute function public.tocar_atualizado_em();
+
+alter table public.agendamentos enable row level security;
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'agendamentos' and policyname = 'agenda: admin gerencia') then
+    create policy "agenda: admin gerencia" on public.agendamentos for all to authenticated
+      using (public.is_admin()) with check (public.is_admin());
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'agendamentos' and policyname = 'agenda: eletricista ve os seus') then
+    create policy "agenda: eletricista ve os seus" on public.agendamentos for select to authenticated
+      using (colaborador_id = auth.uid() and public.is_ativo());
+  end if;
+end $$;
+revoke all on public.agendamentos from anon;
+
+
+-- Eletro Silva – Controle de Horários
+-- Etapa 12: lixeira. O que o administrador exclui (serviço de eletricista ou lançamento avulso)
+-- vai para a lixeira com uma cópia completa e pode ser restaurado por 30 dias.
 
 create table if not exists public.lixeira (
   id uuid primary key default gen_random_uuid(),
@@ -558,12 +784,16 @@ begin
 
     insert into public.registros (
       id, usuario_id, data, hora_chegada, hora_saida, cliente, servico, observacoes,
-      veiculo_id, km_rodados, valor_material, valor_servico, criado_em
+      veiculo_id, km_rodados, valor_material, valor_servico, criado_em,
+      fotos_antes, fotos_depois, assinatura, assinatura_nome
     ) values (
       v_registro, (r ->> 'usuario_id')::uuid, (r ->> 'data')::date, (r ->> 'hora_chegada')::time, (r ->> 'hora_saida')::time,
       r ->> 'cliente', r ->> 'servico', r ->> 'observacoes',
       v_veiculo, coalesce((r ->> 'km_rodados')::numeric, 0), coalesce((r ->> 'valor_material')::numeric, 0),
-      (r ->> 'valor_servico')::numeric, coalesce((r ->> 'criado_em')::timestamptz, now())
+      (r ->> 'valor_servico')::numeric, coalesce((r ->> 'criado_em')::timestamptz, now()),
+      coalesce(array(select jsonb_array_elements_text(coalesce(r -> 'fotos_antes', '[]'::jsonb))), '{}'),
+      coalesce(array(select jsonb_array_elements_text(coalesce(r -> 'fotos_depois', '[]'::jsonb))), '{}'),
+      r ->> 'assinatura', r ->> 'assinatura_nome'
     );
   end if;
 
@@ -595,3 +825,4 @@ end $$;
 revoke execute on function public.restaurar_da_lixeira(uuid) from public, anon;
 grant execute on function public.restaurar_da_lixeira(uuid) to authenticated;
 revoke execute on function public.lancamento_avulso_para_lixeira() from public, anon, authenticated;
+

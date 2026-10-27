@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ClipboardList, History, Users, Wallet } from "lucide-react";
+import { CalendarDays, LayoutDashboard, ClipboardList, History, Users, Wallet } from "lucide-react";
 import { IndicadorLink } from "@/components/ui/IndicadorLink";
 
 const ABAS = [
   { href: "/admin", rotulo: "Resumo", curto: "Resumo", icone: LayoutDashboard },
   { href: "/admin/registros", rotulo: "Registros", curto: "Registros", icone: ClipboardList },
   { href: "/admin/historico", rotulo: "Histórico", curto: "Histórico", icone: History },
+  { href: "/admin/agenda", rotulo: "Agenda", curto: "Agenda", icone: CalendarDays },
   { href: "/admin/gastos", rotulo: "Gastos", curto: "Gastos", icone: Wallet },
   { href: "/admin/colaboradores", rotulo: "Colaboradores", curto: "Equipe", icone: Users },
 ];

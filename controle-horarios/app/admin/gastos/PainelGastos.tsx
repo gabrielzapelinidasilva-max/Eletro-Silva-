@@ -1,7 +1,9 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
-import { AlertTriangle, Fuel, HandCoins, Package, Pencil, Plus, Save, Trash2, User, Wrench, Zap } from "lucide-react";
+import Link from "next/link";
+import { classesBotao } from "@/components/ui/estilos";
+import { AlertTriangle, Printer, Fuel, HandCoins, Package, Pencil, Plus, Save, Trash2, User, Wrench, Zap } from "lucide-react";
 import { excluirLancamento, salvarLancamento } from "./actions";
 import { Modal } from "@/components/ui/Modal";
 import { Botao, BotaoEnviar } from "@/components/ui/Botao";
@@ -144,7 +146,12 @@ function CartaoLancamento({ lancamento: l, aoEditar, aoExcluir }: { lancamento: 
           <Linha rotulo="Gasolina" valor={c.custoGasolina} forte />
         </dl>
       </div>
-      <div className="mt-3 flex justify-end gap-2">
+      <div className="mt-3 flex flex-wrap justify-end gap-2">
+        {l.registro_id && (
+          <Link href={`/admin/nota/${l.registro_id}`} target="_blank" className={classesBotao("fantasma", "md")}>
+            <Printer className="size-4" aria-hidden /> Imprimir nota
+          </Link>
+        )}
         <Botao variante={semValor ? "primario" : "fantasma"} onClick={aoEditar}><Pencil className="size-4" aria-hidden /> {semValor ? "Completar" : "Editar"}</Botao>
         <Botao variante="perigoSuave" onClick={aoExcluir}><Trash2 className="size-4" aria-hidden /> Excluir</Botao>
       </div>

@@ -6,6 +6,7 @@ import { criarClienteServidor } from "@/lib/supabase/server";
 import { hojeSP } from "@/lib/datas";
 import { lerGastosRegistro, lerRegistro, mensagemErroBanco, validarRegistro } from "@/lib/validacao";
 import { falha, falhaValidacao, sucesso } from "@/lib/resultado";
+import { MAX_FOTOS, caminhoValido } from "@/lib/fotos";
 import type { Registro, Resultado } from "@/lib/tipos";
 
 // O banco (RLS) também garante que o eletricista só mexe nos próprios registros de hoje.
@@ -45,14 +46,26 @@ export async function registrarSaida(_a: Resultado, form: FormData): Promise<Res
 
   const lido = lerRegistro(form);
   const dados = { ...lido, data: registro.data, hora_chegada: registro.hora_chegada.slice(0, 5), cliente: lido.cliente || registro.cliente };
+  if (form.get("enviando") === "1") return falha("Aguarde terminar de enviar as fotos/assinatura.", form);
   const gastos = lerGastosRegistro(form);
   const erros = { ...validarRegistro(dados, { exigirSaida: true }), ...gastos.erros };
   if (Object.keys(erros).length) return falhaValidacao(erros, form);
 
+  // Fotos e assinatura (opcionais): só caminhos da pasta deste eletricista e deste registro.
+  const doRegistro = (campo: string) =>
+    form.getAll(campo).map(String).filter((c) => caminhoValido(c, registro.usuario_id, registro.id)).slice(0, MAX_FOTOS);
+  const assinatura = String(form.get("assinatura") ?? "");
+  const anexos = {
+    fotos_antes: doRegistro("fotos_antes"),
+    fotos_depois: doRegistro("fotos_depois"),
+    assinatura: caminhoValido(assinatura, registro.usuario_id, registro.id) ? assinatura : null,
+    assinatura_nome: String(form.get("assinatura_nome") ?? "").trim().slice(0, 120) || null,
+  };
+
   // Ao salvar com saída, o banco cria sozinho o lançamento da aba Gastos do administrador.
   const { error } = await supabase
     .from("registros")
-    .update({ hora_saida: dados.hora_saida, cliente: dados.cliente, servico: dados.servico, observacoes: dados.observacoes, ...gastos.dados })
+    .update({ hora_saida: dados.hora_saida, cliente: dados.cliente, servico: dados.servico, observacoes: dados.observacoes, ...gastos.dados, ...anexos })
     .eq("id", registro.id);
   if (error) return falha(mensagemErroBanco(error), form);
 

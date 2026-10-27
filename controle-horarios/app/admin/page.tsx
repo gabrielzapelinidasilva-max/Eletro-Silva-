@@ -4,6 +4,7 @@ import { ArrowRight, HardHat, AlertTriangle } from "lucide-react";
 import { Cartao, Indicador, TituloSecao } from "@/components/ui/Cartao";
 import { EstadoVazio, Selo } from "@/components/ui/Estados";
 import { ItemRegistro } from "@/components/registros/ItemRegistro";
+import { LocalizacaoColaborador } from "@/components/LocalizacaoColaborador";
 import { exigirAdmin } from "@/lib/auth";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { buscarRegistros } from "@/lib/consultas";
@@ -20,12 +21,20 @@ export default async function Resumo() {
   const semana = inicioSemana(hoje);
   const mes = inicioMes(hoje);
 
-  const [periodo, { data: abertosData }, { data: ultimosData }, { count: ativos }] = await Promise.all([
+  const [periodo, { data: abertosData }, { data: ultimosData }, { count: ativos }, { data: locais }] = await Promise.all([
     buscarRegistros(supabase, { colaborador: "", de: semana < mes ? semana : mes, ate: hoje, cliente: "", q: "" }),
     supabase.from("registros").select("*, profiles(nome)").is("hora_saida", null).order("data").order("hora_chegada"),
     supabase.from("registros").select("*, profiles(nome)").order("criado_em", { ascending: false }).limit(8),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("ativo", true).eq("funcao", "eletricista"),
+    supabase.from("localizacoes").select("usuario_id, latitude, longitude, precisao, atualizado_em"),
   ]);
+  // Última localização de cada colaborador (enviada pelo celular durante o atendimento)
+  const agoraMs = Date.now();
+  const localDe = (usuarioId: string, desde: string) => {
+    const l = (locais ?? []).find((x) => x.usuario_id === usuarioId);
+    if (!l || l.atualizado_em < desde) return null; // localização de antes deste atendimento não vale
+    return { latitude: l.latitude, longitude: l.longitude, precisao: l.precisao, minutos: Math.max(0, Math.floor((agoraMs - new Date(l.atualizado_em).getTime()) / 60000)) };
+  };
 
   const abertos = (abertosData ?? []) as RegistroComPerfil[];
   const ultimos = (ultimosData ?? []) as RegistroComPerfil[];
@@ -64,6 +73,7 @@ export default async function Resumo() {
                       <p className="font-semibold text-slate-900">{r.profiles?.nome ?? "—"}</p>
                       <p className="truncate text-sm text-slate-600">{r.cliente}</p>
                       {esquecido && <p className="mt-0.5 text-xs font-medium text-amber-700">Saída não registrada em {formatarData(r.data)}. Corrija na aba Registros.</p>}
+                      {!esquecido && <LocalizacaoColaborador local={localDe(r.usuario_id, r.criado_em)} />}
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-semibold tabular-nums text-slate-900">desde {formatarHora(r.hora_chegada)}</p>
