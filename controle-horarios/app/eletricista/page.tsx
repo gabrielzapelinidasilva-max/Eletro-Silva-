@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { PainelPonto } from "./PainelPonto";
 import { MeusRegistros } from "./MeusRegistros";
 import { MinhaAgenda } from "./MinhaAgenda";
+import { AgendaAoVivo } from "./AgendaAoVivo";
 import type { Agendamento } from "@/lib/agenda";
 import { Indicador, TituloSecao } from "@/components/ui/Cartao";
 import { exigirEletricista } from "@/lib/auth";
 import { criarClienteServidor } from "@/lib/supabase/server";
-import { dataPorExtenso, hojeSP, horaAgoraSP, inicioMes, inicioSemana, somarDias } from "@/lib/datas";
+import { dataPorExtenso, hojeSP, horaAgoraSP, inicioMes, inicioSemana } from "@/lib/datas";
 import { formatarMinutos, somarMinutos } from "@/lib/horas";
 import type { Registro, VeiculoOpcao } from "@/lib/tipos";
 
@@ -28,8 +29,8 @@ export default async function PaginaEletricista({ searchParams }: { searchParams
     supabase.from("registros").select("data, minutos_trabalhados").eq("usuario_id", perfil.id).gte("data", semana < mes ? semana : mes),
     supabase.from("registros").select("*").eq("usuario_id", perfil.id).is("hora_saida", null).maybeSingle(),
     supabase.from("veiculos").select("id, nome, consumo_km_l").eq("ativo", true).order("nome"),
-    supabase.from("agendamentos").select("*").eq("colaborador_id", perfil.id).eq("status", "agendado").gte("data", hoje).lte("data", somarDias(hoje, 30))
-      .order("data").order("hora", { nullsFirst: false }).limit(20),
+    supabase.from("agendamentos").select("*").eq("colaborador_id", perfil.id).eq("status", "agendado").gte("data", hoje)
+      .order("data").order("hora", { nullsFirst: false }).limit(100),
   ]);
   const veiculos: VeiculoOpcao[] = (carros ?? []).map((c) => ({ ...c, consumo_km_l: Number(c.consumo_km_l) }));
 
@@ -47,6 +48,7 @@ export default async function PaginaEletricista({ searchParams }: { searchParams
 
       <PainelPonto aberto={(aberto as Registro | null) ?? null} hoje={hoje} horaAgora={horaAgoraSP()} veiculos={veiculos} usuarioId={perfil.id} clienteSugerido={clienteSugerido} />
 
+      <AgendaAoVivo usuarioId={perfil.id} itens={(agenda ?? []) as Agendamento[]} />
       <MinhaAgenda itens={(agenda ?? []) as Agendamento[]} hoje={hoje} podeIniciar={!aberto} />
 
       <section aria-label="Totais de horas" className="grid grid-cols-3 gap-3">

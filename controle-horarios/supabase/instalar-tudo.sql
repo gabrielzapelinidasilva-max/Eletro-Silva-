@@ -826,3 +826,16 @@ revoke execute on function public.restaurar_da_lixeira(uuid) from public, anon;
 grant execute on function public.restaurar_da_lixeira(uuid) to authenticated;
 revoke execute on function public.lancamento_avulso_para_lixeira() from public, anon, authenticated;
 
+
+-- Eletro Silva – Controle de Horários
+-- Etapa 13: a agenda aparece na hora para o eletricista (Supabase Realtime).
+-- O Realtime respeita o RLS: cada eletricista só recebe os próprios agendamentos.
+
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'agendamentos') then
+    alter publication supabase_realtime add table public.agendamentos;
+  end if;
+end $$;
+

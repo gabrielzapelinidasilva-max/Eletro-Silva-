@@ -13,6 +13,8 @@ export type Agendamento = {
   observacoes: string | null;
   colaborador_id: string | null;
   status: StatusAgendamento;
+  criado_em?: string;
+  atualizado_em?: string;
 };
 
 export const STATUS: { valor: StatusAgendamento; rotulo: string }[] = [

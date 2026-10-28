@@ -18,7 +18,7 @@ Aplicativo web para os **eletricistas** registrarem chegada, saída e o serviço
 - **Registrar saída**: a hora atual já vem preenchida. Informa o serviço realizado (obrigatório), observações (opcional) e o **carro usado e os km rodados**. Ao salvar, o serviço entra **sozinho** na aba Gastos do administrador, já com a mão de obra e a gasolina calculadas. O eletricista **não vê nem informa valores** (material e valor cobrado): isso é só do administrador.
 - **Meus registros**: histórico do mais recente para o mais antigo. Só os registros **de hoje** podem ser editados.
 - Na saída, a parte **Fotos e assinatura do cliente (opcional)**: fotos do **antes** e do **depois** (até 6 de cada, tiradas na hora ou da galeria) e a **assinatura do cliente** com o dedo na tela, mais o nome de quem assinou.
-- **Minha agenda**: os serviços agendados para ele nos próximos 30 dias, com botões para ver o endereço no mapa, ligar para o cliente e **Iniciar** (já preenche o cliente na chegada).
+- **Minha agenda**: todos os serviços que o administrador agendou para ele (data, horário, cliente, endereço, telefone, serviço e observações), **na mesma hora** em que o admin agenda ou altera, sem recarregar a página (aparece um aviso e o selo "Novo" ou "Alterado"). É só leitura: o eletricista não consegue mudar nada (o banco garante). Tem botões para ver o endereço no mapa, ligar para o cliente e **Iniciar** (já preenche o cliente na chegada).
 - Enquanto está com um serviço em aberto e o app aberto, o celular envia a **localização** para o administrador (o aparelho pede permissão).
 - Total de horas de hoje, da semana (a partir de segunda-feira) e do mês.
 
@@ -178,7 +178,7 @@ controle-horarios/
 ├── lib/                    Supabase, datas/fuso, cálculo de horas, validações, consultas
 ├── middleware.ts           protege as rotas conforme a função do usuário
 ├── supabase/
-│   ├── migrations/         0001 a 0012 (rodar na ordem)
+│   ├── migrations/         0001 a 0013 (rodar na ordem)
 │   ├── instalar-tudo.sql   todas as migrations juntas (colar no SQL Editor)
 │   └── criar-admin.sql     promove um usuário a administrador
 └── scripts/criar-admin.mjs cria o primeiro administrador pelo terminal
