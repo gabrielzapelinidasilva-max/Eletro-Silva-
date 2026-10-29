@@ -3,17 +3,19 @@
 import { revalidatePath } from "next/cache";
 import { exigirEletricista } from "@/lib/auth";
 import { criarClienteServidor } from "@/lib/supabase/server";
-import { hojeSP } from "@/lib/datas";
+import { hojeSP, horaAgoraSP } from "@/lib/datas";
 import { lerGastosRegistro, lerRegistro, mensagemErroBanco, validarRegistro } from "@/lib/validacao";
 import { falha, falhaValidacao, sucesso } from "@/lib/resultado";
 import { MAX_FOTOS, caminhoValido } from "@/lib/fotos";
 import type { Registro, Resultado } from "@/lib/tipos";
 
 // O banco (RLS) também garante que o eletricista só mexe nos próprios registros de hoje.
+// As horas de chegada e saída são sempre a hora do momento: o eletricista não escolhe
+// (o banco também força isso para quem não é administrador).
 
 export async function registrarChegada(_a: Resultado, form: FormData): Promise<Resultado> {
   const perfil = await exigirEletricista();
-  const dados = { ...lerRegistro(form), data: hojeSP(), hora_saida: null, servico: null, observacoes: null };
+  const dados = { ...lerRegistro(form), data: hojeSP(), hora_chegada: horaAgoraSP(), hora_saida: null, servico: null, observacoes: null };
   const erros = validarRegistro(dados);
   if (Object.keys(erros).length) return falhaValidacao(erros, form);
 
@@ -45,7 +47,7 @@ export async function registrarSaida(_a: Resultado, form: FormData): Promise<Res
   if (!registro) return falha(erro!, form);
 
   const lido = lerRegistro(form);
-  const dados = { ...lido, data: registro.data, hora_chegada: registro.hora_chegada.slice(0, 5), cliente: lido.cliente || registro.cliente };
+  const dados = { ...lido, data: registro.data, hora_chegada: registro.hora_chegada.slice(0, 5), hora_saida: horaAgoraSP(), cliente: lido.cliente || registro.cliente };
   if (form.get("enviando") === "1") return falha("Aguarde terminar de enviar as fotos/assinatura.", form);
   const gastos = lerGastosRegistro(form);
   const erros = { ...validarRegistro(dados, { exigirSaida: true }), ...gastos.erros };
@@ -77,7 +79,8 @@ export async function editarMeuRegistro(_a: Resultado, form: FormData): Promise<
   const { supabase, registro, erro } = await buscarMeuRegistroDeHoje(String(form.get("id") ?? ""));
   if (!registro) return falha(erro!, form);
 
-  const dados = { ...lerRegistro(form), data: registro.data };
+  // As horas ficam como foram registradas; só o administrador altera.
+  const dados = { ...lerRegistro(form), data: registro.data, hora_chegada: registro.hora_chegada.slice(0, 5), hora_saida: registro.hora_saida?.slice(0, 5) ?? null };
   const gastos = lerGastosRegistro(form);
   const erros = { ...validarRegistro(dados), ...gastos.erros };
   if (Object.keys(erros).length) return falhaValidacao(erros, form);
@@ -85,8 +88,6 @@ export async function editarMeuRegistro(_a: Resultado, form: FormData): Promise<
   const { error } = await supabase
     .from("registros")
     .update({
-      hora_chegada: dados.hora_chegada,
-      hora_saida: dados.hora_saida,
       cliente: dados.cliente,
       servico: dados.servico,
       observacoes: dados.observacoes,

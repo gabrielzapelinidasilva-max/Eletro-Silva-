@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Lock } from "lucide-react";
 import { Campo } from "@/components/ui/Campo";
 import { horaAgoraSP } from "@/lib/datas";
 
@@ -35,43 +36,24 @@ export function CampoHora({ onChange, ...props }: PropsHora) {
 }
 
 /**
- * Campo de hora que começa com a hora atual e continua acompanhando o relógio
- * até a pessoa mexer nele (para ajustar manualmente).
+ * Hora atual (do relógio de São Paulo), só para mostrar. O eletricista não altera:
+ * o servidor e o banco gravam a hora do momento em que ele toca no botão.
  */
-export function CampoHoraAtual({ nome, rotulo, horaInicial, erro }: { nome: string; rotulo: string; horaInicial: string; erro?: string }) {
+export function HoraAutomatica({ rotulo, horaInicial }: { rotulo: string; horaInicial: string }) {
   const [valor, setValor] = useState(horaInicial);
-  const [ajustado, setAjustado] = useState(false);
-
   useEffect(() => {
-    if (ajustado) return;
     setValor(horaAgoraSP());
     const t = setInterval(() => setValor(horaAgoraSP()), 15_000);
     return () => clearInterval(t);
-  }, [ajustado]);
+  }, []);
 
   return (
     <div>
-      <CampoHora
-        rotulo={rotulo}
-        name={nome}
-        value={valor}
-        onChange={(v) => {
-          setValor(v);
-          setAjustado(true);
-        }}
-        erro={erro}
-        obrigatorio
-        className="text-center text-2xl font-bold tabular-nums"
-      />
-      <p className="mt-1 text-xs text-slate-500">
-        {ajustado ? (
-          <button type="button" className="font-semibold text-marca-600 underline" onClick={() => setAjustado(false)}>
-            Voltar para a hora atual
-          </button>
-        ) : (
-          "Hora atual preenchida automaticamente. Toque para ajustar (formato 24h)."
-        )}
+      <p className="mb-1.5 block text-sm font-semibold text-slate-700">{rotulo}</p>
+      <p className="flex h-12 items-center justify-center gap-2 rounded-xl bg-slate-100 text-2xl font-bold tabular-nums text-slate-900 ring-1 ring-slate-200" aria-live="off">
+        <Lock className="size-4 text-slate-400" aria-hidden /> {valor}
       </p>
+      <p className="mt-1 text-xs text-slate-500">Hora registrada automaticamente quando você tocar no botão. Não pode ser alterada.</p>
     </div>
   );
 }

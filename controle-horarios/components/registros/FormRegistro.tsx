@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { Save } from "lucide-react";
+import { Lock, Save } from "lucide-react";
 import { Campo, AreaTexto } from "@/components/ui/Campo";
 import { CampoHora } from "./CampoHora";
 import { CamposGastosRegistro } from "./CamposGastosRegistro";
@@ -16,11 +16,13 @@ type Props = {
   acao: (anterior: Resultado, form: FormData) => Promise<Resultado>;
   /** O administrador pode trocar a data e ver/preencher material e valor cobrado; o eletricista não. */
   permitirData?: boolean;
+  /** Eletricista: as horas aparecem, mas não podem ser alteradas. */
+  horasTravadas?: boolean;
   aoConcluir: () => void;
 };
 
 /** Formulário de edição completa de um registro (usado nas duas áreas). */
-export function FormRegistro({ registro, veiculos, acao, permitirData, aoConcluir }: Props) {
+export function FormRegistro({ registro, veiculos, acao, permitirData, horasTravadas, aoConcluir }: Props) {
   const [estado, enviar] = useActionState(acao, RESULTADO_INICIAL);
   useToastDoResultado(estado, aoConcluir);
   const e = estado.erros ?? {};
@@ -35,10 +37,20 @@ export function FormRegistro({ registro, veiculos, acao, permitirData, aoConclui
       ) : (
         <input type="hidden" name="data" value={registro.data} />
       )}
+      {horasTravadas ? (
+        <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
+          <p className="flex items-center gap-1.5 text-sm font-semibold tabular-nums text-slate-800">
+            <Lock className="size-4 text-slate-400" aria-hidden />
+            Chegada {hora(registro.hora_chegada)} · Saída {registro.hora_saida ? hora(registro.hora_saida) : "ainda trabalhando"}
+          </p>
+          <p className="mt-0.5 text-xs text-slate-500">Os horários são registrados automaticamente. Só o administrador pode alterá-los.</p>
+        </div>
+      ) : (
       <div className="grid grid-cols-2 gap-3">
         <CampoHora rotulo="Chegada" name="hora_chegada" defaultValue={v("hora_chegada", hora(registro.hora_chegada))} erro={e.hora_chegada} obrigatorio />
         <CampoHora rotulo="Saída" name="hora_saida" defaultValue={v("hora_saida", hora(registro.hora_saida))} erro={e.hora_saida} ajuda="Vazio = ainda trabalhando" />
       </div>
+      )}
       <Campo rotulo="Cliente" name="cliente" defaultValue={v("cliente", registro.cliente)} erro={e.cliente} obrigatorio maxLength={200} />
       <AreaTexto rotulo="Serviço realizado" name="servico" defaultValue={v("servico", registro.servico ?? "")} erro={e.servico} ajuda="Obrigatório quando houver saída." maxLength={2000} />
       <AreaTexto rotulo="Observações" name="observacoes" defaultValue={v("observacoes", registro.observacoes ?? "")} erro={e.observacoes} rows={4} maxLength={5000} />

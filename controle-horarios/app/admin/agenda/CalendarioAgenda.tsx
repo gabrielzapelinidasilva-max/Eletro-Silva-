@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useTransition } from "react";
 import Link from "next/link";
-import { CalendarDays, ChevronLeft, ChevronRight, MapPin, MoveRight, Pencil, Phone, Plus, Save, Trash2, User } from "lucide-react";
+import { CalendarDays, ChevronLeft, HardHat, ChevronRight, MapPin, MoveRight, Pencil, Phone, Plus, Save, Trash2, User } from "lucide-react";
 import { excluirAgendamento, moverAgendamento, salvarAgendamento } from "./actions";
 import { Modal } from "@/components/ui/Modal";
 import { Botao, BotaoEnviar } from "@/components/ui/Botao";
@@ -75,6 +75,7 @@ export function CalendarioAgenda({ mes, hoje, inicioGrade, fimGrade, agendamento
       className={`block w-full cursor-grab truncate rounded-md px-1.5 py-1 text-left text-[11px] font-semibold ring-1 active:cursor-grabbing ${corStatus[a.status]} ${arrastando === a.id ? "opacity-40" : ""}`}
       title={`${a.hora ? formatarHora(a.hora) + " · " : ""}${a.cliente}${nome(a.colaborador_id) ? " · " + nome(a.colaborador_id) : ""}`}
     >
+      {a.obra_id && <HardHat className="mr-0.5 inline size-3 align-[-2px]" aria-label="Serviço em andamento" />}
       {a.hora && <span className="tabular-nums">{formatarHora(a.hora)} </span>}
       {a.cliente}
     </button>
@@ -170,7 +171,14 @@ export function CalendarioAgenda({ mes, hoje, inicioGrade, fimGrade, agendamento
               <div>
                 <p className="text-lg font-bold text-slate-900">{a.cliente}</p>
                 <p className="text-sm text-slate-600">{dataPorExtenso(a.data)}{a.hora ? ` às ${formatarHora(a.hora)}` : ""}</p>
-                <div className="mt-1"><Selo cor={a.status === "agendado" ? "azul" : a.status === "concluido" ? "verde" : "cinza"}>{STATUS.find((s) => s.valor === a.status)?.rotulo}</Selo></div>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <Selo cor={a.status === "agendado" ? "azul" : a.status === "concluido" ? "verde" : "cinza"}>{STATUS.find((s) => s.valor === a.status)?.rotulo}</Selo>
+                  {a.obra_id && (
+                    <Link href="/admin/agenda?aba=andamento" className="inline-flex items-center gap-1 text-xs font-semibold text-marca-700 underline">
+                      <HardHat className="size-3.5" aria-hidden /> Parte de um serviço em andamento
+                    </Link>
+                  )}
+                </div>
               </div>
               <dl className="space-y-1.5 text-sm text-slate-700">
                 {nome(a.colaborador_id) && <p className="flex items-center gap-2"><User className="size-4 text-slate-400" aria-hidden /> {nome(a.colaborador_id)}</p>}

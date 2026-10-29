@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { CalendarDays, Clock, Lock, LogIn, MapPin, Phone } from "lucide-react";
+import { CalendarDays, Clock, HardHat, Lock, LogIn, MapPin, Phone } from "lucide-react";
 import { TituloSecao } from "@/components/ui/Cartao";
 import { classesBotao } from "@/components/ui/estilos";
-import { dataPorExtenso, formatarHora } from "@/lib/datas";
+import { dataPorExtenso, formatarData, formatarHora } from "@/lib/datas";
 import { linkMapa, linkTelefone, type Agendamento } from "@/lib/agenda";
 
 const UM_DIA = 24 * 60 * 60 * 1000;
@@ -25,6 +25,16 @@ function Campo({ rotulo, children }: { rotulo: string; children: React.ReactNode
   );
 }
 
+/** Junta os dias de um mesmo serviço em andamento (obra) em um cartão só. */
+function agrupar(itens: Agendamento[]) {
+  const grupos = new Map<string, Agendamento[]>();
+  for (const a of itens) {
+    const chave = a.obra_id ?? a.id;
+    grupos.set(chave, [...(grupos.get(chave) ?? []), a]);
+  }
+  return [...grupos.values()];
+}
+
 /** Serviços agendados para o eletricista. Só leitura: quem agenda e altera é o administrador (aba Agenda). */
 export function MinhaAgenda({ itens, hoje, podeIniciar }: { itens: Agendamento[]; hoje: string; podeIniciar: boolean }) {
   const agora = Date.now();
@@ -38,14 +48,17 @@ export function MinhaAgenda({ itens, hoje, podeIniciar }: { itens: Agendamento[]
         <p className="rounded-xl bg-white p-4 text-sm text-slate-500 ring-1 ring-slate-200">Nenhum serviço agendado para você no momento.</p>
       ) : (
         <ul className="space-y-2">
-          {itens.map((a) => {
-            const s = selo(a, agora);
+          {agrupar(itens).map((grupo) => {
+            const a = grupo[0];
+            const s = grupo.map((x) => selo(x, agora)).find(Boolean) ?? null;
             const ehHoje = a.data === hoje;
+            const obra = !!a.obra_id;
             return (
-              <li key={a.id} className={`rounded-xl bg-white p-4 ring-1 ${ehHoje ? "ring-marca-300" : "ring-slate-200"}`}>
+              <li key={a.obra_id ?? a.id} className={`rounded-xl bg-white p-4 ring-1 ${ehHoje ? "ring-marca-300" : "ring-slate-200"}`}>
                 <div className="flex items-start justify-between gap-2">
                   <p className={`text-xs font-bold uppercase tracking-wide ${ehHoje ? "text-marca-700" : "text-slate-500"}`}>
-                    {ehHoje ? "Hoje" : dataPorExtenso(a.data)}
+                    {obra && <span className="mb-0.5 flex items-center gap-1 text-marca-700"><HardHat className="size-3.5" aria-hidden /> Serviço em andamento · {grupo.length} {grupo.length === 1 ? "dia" : "dias"}</span>}
+                    {obra ? "Próximo dia: " : ""}{ehHoje ? "Hoje" : dataPorExtenso(a.data)}
                   </p>
                   {s && <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${s.classe}`}>{s.texto}</span>}
                 </div>
@@ -59,6 +72,19 @@ export function MinhaAgenda({ itens, hoje, podeIniciar }: { itens: Agendamento[]
                   {a.servico && <Campo rotulo="Serviço">{a.servico}</Campo>}
                   {a.observacoes && <Campo rotulo="Observações">{a.observacoes}</Campo>}
                 </dl>
+                {obra && grupo.length > 1 && (
+                  <div className="mt-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Dias</p>
+                    <p className="mt-1 flex flex-wrap gap-1">
+                      {grupo.slice(0, 12).map((x) => (
+                        <span key={x.id} className={`rounded-md px-1.5 py-0.5 text-xs font-semibold tabular-nums ${x.data === hoje ? "bg-marca-600 text-white" : "bg-slate-100 text-slate-700"}`}>
+                          {x.data === hoje ? "Hoje" : formatarData(x.data).slice(0, 5)}
+                        </span>
+                      ))}
+                      {grupo.length > 12 && <span className="px-1 text-xs text-slate-500">e mais {grupo.length - 12}</span>}
+                    </p>
+                  </div>
+                )}
                 <div className="mt-3 flex flex-wrap gap-2">
                   {a.endereco && (
                     <a href={linkMapa(a.endereco)} target="_blank" rel="noopener" className={classesBotao("secundario", "md", "px-3")}>

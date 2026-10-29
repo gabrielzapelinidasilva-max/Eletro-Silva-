@@ -48,11 +48,18 @@ export function AgendaAoVivo({ usuarioId, itens }: { usuarioId: string; itens: A
     const antes = anteriores.current;
     anteriores.current = atual;
     if (!antes) return;
+    // Um aviso por serviço (os vários dias de um serviço em andamento viram um aviso só).
+    const avisos = new Map<string, { texto: string; dias: number }>();
     for (const a of itens) {
+      const novo = !antes.has(a.id);
+      if (!novo && antes.get(a.id) === atual.get(a.id)) continue;
+      const chave = `${novo}|${a.obra_id ?? a.id}`;
       const quando = `${formatarData(a.data)}${a.hora ? ` às ${formatarHora(a.hora)}` : ""}`;
-      if (!antes.has(a.id)) toast("sucesso", `Novo serviço na sua agenda: ${a.cliente}, ${quando}.`);
-      else if (antes.get(a.id) !== atual.get(a.id)) toast("sucesso", `O administrador alterou um serviço: ${a.cliente}, ${quando}.`);
+      const aviso = avisos.get(chave);
+      if (aviso) aviso.dias += 1;
+      else avisos.set(chave, { texto: `${novo ? "Novo serviço na sua agenda" : "O administrador alterou um serviço"}: ${a.cliente}, ${quando}`, dias: 1 });
     }
+    for (const { texto, dias } of avisos.values()) toast("sucesso", dias > 1 ? `${texto} (${dias} dias).` : `${texto}.`);
   }, [itens, toast]);
 
   return null;

@@ -30,7 +30,7 @@ export default async function PaginaEletricista({ searchParams }: { searchParams
     supabase.from("registros").select("*").eq("usuario_id", perfil.id).is("hora_saida", null).maybeSingle(),
     supabase.from("veiculos").select("id, nome, consumo_km_l").eq("ativo", true).order("nome"),
     supabase.from("agendamentos").select("*").eq("colaborador_id", perfil.id).eq("status", "agendado").gte("data", hoje)
-      .order("data").order("hora", { nullsFirst: false }).limit(100),
+      .order("data").order("hora", { nullsFirst: false }).limit(400),
   ]);
   const veiculos: VeiculoOpcao[] = (carros ?? []).map((c) => ({ ...c, consumo_km_l: Number(c.consumo_km_l) }));
 

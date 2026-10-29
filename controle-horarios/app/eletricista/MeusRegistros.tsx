@@ -49,7 +49,7 @@ export function MeusRegistros({ registros, hoje, temMais, proximoLimite, veiculo
         </div>
       )}
       <Modal aberto={!!editando} aoFechar={() => setEditando(null)} titulo="Editar registro de hoje">
-        {editando && <FormRegistro key={editando.id} registro={editando} veiculos={veiculos} acao={editarMeuRegistro} aoConcluir={() => setEditando(null)} />}
+        {editando && <FormRegistro key={editando.id} registro={editando} veiculos={veiculos} acao={editarMeuRegistro} horasTravadas aoConcluir={() => setEditando(null)} />}
       </Modal>
     </>
   );

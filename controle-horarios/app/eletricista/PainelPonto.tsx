@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { Camera, ChevronDown, LogIn, LogOut, MapPin, Clock } from "lucide-react";
 import { registrarChegada, registrarSaida } from "./actions";
-import { CampoHoraAtual } from "@/components/registros/CampoHora";
+import { HoraAutomatica } from "@/components/registros/CampoHora";
 import { CamposGastosRegistro } from "@/components/registros/CamposGastosRegistro";
 import { FotosServico } from "@/components/registros/FotosServico";
 import { AssinaturaCliente } from "@/components/registros/AssinaturaCliente";
@@ -58,7 +58,7 @@ function FormChegada({ horaAgora, hoje, estado, enviar, clienteSugerido }: Props
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Campo rotulo="Data" value={formatarData(hoje)} readOnly disabled />
-          <CampoHoraAtual nome="hora_chegada" rotulo="Hora de chegada" horaInicial={horaAgora} erro={e.hora_chegada} />
+          <HoraAutomatica rotulo="Hora de chegada" horaInicial={horaAgora} />
         </div>
         <Campo rotulo="Cliente" name="cliente" placeholder="Nome do cliente ou local" defaultValue={estado.valores?.cliente ?? clienteSugerido} erro={e.cliente} obrigatorio maxLength={200} autoComplete="off" />
         <BotaoEnviar tamanho="xl" className="w-full" textoCarregando="Registrando...">
@@ -92,7 +92,7 @@ function FormSaida({ registro, horaAgora, estado, enviar, veiculos, usuarioId }:
             <p className="text-sm">Cliente: {registro.cliente}</p>
           </div>
         </div>
-        <CampoHoraAtual nome="hora_saida" rotulo="Hora de saída" horaInicial={horaAgora} erro={e.hora_saida} />
+        <HoraAutomatica rotulo="Hora de saída" horaInicial={horaAgora} />
         <Campo rotulo="Cliente" name="cliente" defaultValue={estado.valores?.cliente ?? registro.cliente} erro={e.cliente} obrigatorio maxLength={200} />
         <AreaTexto rotulo="Serviço realizado" name="servico" defaultValue={estado.valores?.servico} placeholder="Ex.: Troca de disjuntor e revisão do quadro" erro={e.servico} obrigatorio maxLength={2000} />
         <AreaTexto rotulo="Observações (opcional)" name="observacoes" defaultValue={estado.valores?.observacoes} placeholder="Materiais usados, pendências, recados..." erro={e.observacoes} rows={4} maxLength={5000} />
