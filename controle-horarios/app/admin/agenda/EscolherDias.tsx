@@ -26,12 +26,12 @@ function previa(datas: string[]) {
  * - "Escolher no calendário": tocar nos dias do mês (com atalhos para o mês inteiro).
  * Envia as datas escolhidas em campos "datas".
  */
-export function EscolherDias({ hoje, erro }: { hoje: string; erro?: string }) {
+export function EscolherDias({ hoje, inicio: inicioPadrao, erro }: { hoje: string; inicio?: string; erro?: string }) {
   const [modo, setModo] = useState<"semana" | "calendario">("semana");
   const [semana, setSemana] = useState<number[]>([1, 2, 3, 4, 5]);
-  const [inicio, setInicio] = useState(hoje);
+  const [inicio, setInicio] = useState(inicioPadrao ?? hoje);
   const [quantidade, setQuantidade] = useState("5");
-  const [mes, setMes] = useState(`${hoje.slice(0, 7)}-01`);
+  const [mes, setMes] = useState(`${(inicioPadrao ?? hoje).slice(0, 7)}-01`);
   const [marcadas, setMarcadas] = useState<string[]>([]);
 
   const datas = modo === "semana" ? diasPelaSemana(inicio || hoje, semana, Number(quantidade) || 0) : [...marcadas].sort();

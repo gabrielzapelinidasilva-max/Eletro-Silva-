@@ -6,6 +6,7 @@ import { criarClienteServidor } from "@/lib/supabase/server";
 import { dataValida, formatarData, hojeSP, horaValida } from "@/lib/datas";
 import { MAX_DIAS_OBRA } from "@/lib/obras";
 import { falha, falhaValidacao, sucesso } from "@/lib/resultado";
+import { cadastrarClienteSeNovo } from "@/lib/clientes-servidor";
 import type { Resultado } from "@/lib/tipos";
 
 // Serviços em andamento: cada dia escolhido vira um agendamento (um por eletricista),
@@ -17,6 +18,7 @@ function texto(form: FormData, campo: string) {
 
 function atualizar() {
   revalidatePath("/admin/agenda");
+  revalidatePath("/admin/clientes");
   revalidatePath("/eletricista");
 }
 
@@ -81,6 +83,7 @@ export async function criarObra(_a: Resultado, form: FormData): Promise<Resultad
     await supabase.from("obras").delete().eq("id", obra.id);
     return falha("Não foi possível agendar os dias. Tente novamente.", form);
   }
+  await cadastrarClienteSeNovo(supabase, form);
   atualizar();
   return sucesso(`${dados.cliente}: ${resumoDias(datas)} na agenda.`);
 }
@@ -111,6 +114,7 @@ export async function editarObra(_a: Resultado, form: FormData): Promise<Resulta
   const { error } = await supabase.from("obras").update(dados).eq("id", id);
   if (error) return falha("Não foi possível salvar. Tente novamente.", form);
   await supabase.from("agendamentos").update(dados).eq("obra_id", id).eq("status", "agendado").gte("data", hojeSP());
+  await cadastrarClienteSeNovo(supabase, form);
   atualizar();
   return sucesso("Serviço atualizado (também nos próximos dias da agenda).");
 }

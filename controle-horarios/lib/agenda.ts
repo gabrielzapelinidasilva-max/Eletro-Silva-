@@ -14,6 +14,7 @@ export type Agendamento = {
   colaborador_id: string | null;
   status: StatusAgendamento;
   obra_id?: string | null;
+  serie_id?: string | null;
   criado_em?: string;
   atualizado_em?: string;
 };

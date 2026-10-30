@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useTransition } from "react";
 import Link from "next/link";
-import { CalendarDays, ChevronLeft, HardHat, ChevronRight, MapPin, MoveRight, Pencil, Phone, Plus, Save, Trash2, User } from "lucide-react";
+import { CalendarDays, ChevronLeft, HardHat, Repeat, ChevronRight, MapPin, MoveRight, Pencil, Phone, Plus, Save, Trash2, User } from "lucide-react";
 import { excluirAgendamento, moverAgendamento, salvarAgendamento } from "./actions";
 import { Modal } from "@/components/ui/Modal";
 import { Botao, BotaoEnviar } from "@/components/ui/Botao";
@@ -16,6 +16,9 @@ import { dataPorExtenso, formatarData, formatarHora, somarDias } from "@/lib/dat
 import { MESES_CURTOS, STATUS, linkMapa, linkTelefone, type Agendamento } from "@/lib/agenda";
 import { nomeMes } from "@/lib/fixos";
 import { RESULTADO_INICIAL } from "@/lib/tipos";
+import type { Cliente } from "@/lib/clientes";
+import { CampoCliente } from "@/components/CampoCliente";
+import { EscolherDias } from "./EscolherDias";
 
 type Props = {
   mes: string; // AAAA-MM-01
@@ -25,6 +28,7 @@ type Props = {
   agendamentos: Agendamento[];
   porMes: number[];
   colaboradores: { id: string; nome: string }[];
+  clientes: Cliente[];
 };
 
 type Janela = { tipo: "novo"; data: string } | { tipo: "ver" | "editar" | "mover" | "excluir"; item: Agendamento } | null;
@@ -39,7 +43,7 @@ function mesVizinho(mes: string, passo: number) {
   return d.toISOString().slice(0, 7);
 }
 
-export function CalendarioAgenda({ mes, hoje, inicioGrade, fimGrade, agendamentos, porMes, colaboradores }: Props) {
+export function CalendarioAgenda({ mes, hoje, inicioGrade, fimGrade, agendamentos, porMes, colaboradores, clientes }: Props) {
   const [janela, setJanela] = useState<Janela>(null);
   const fechar = () => setJanela(null);
   const [arrastando, setArrastando] = useState<string | null>(null);
@@ -76,6 +80,7 @@ export function CalendarioAgenda({ mes, hoje, inicioGrade, fimGrade, agendamento
       title={`${a.hora ? formatarHora(a.hora) + " · " : ""}${a.cliente}${nome(a.colaborador_id) ? " · " + nome(a.colaborador_id) : ""}`}
     >
       {a.obra_id && <HardHat className="mr-0.5 inline size-3 align-[-2px]" aria-label="Serviço em andamento" />}
+      {a.serie_id && <Repeat className="mr-0.5 inline size-3 align-[-2px]" aria-label="Repete em vários dias" />}
       {a.hora && <span className="tabular-nums">{formatarHora(a.hora)} </span>}
       {a.cliente}
     </button>
@@ -173,6 +178,7 @@ export function CalendarioAgenda({ mes, hoje, inicioGrade, fimGrade, agendamento
                 <p className="text-sm text-slate-600">{dataPorExtenso(a.data)}{a.hora ? ` às ${formatarHora(a.hora)}` : ""}</p>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <Selo cor={a.status === "agendado" ? "azul" : a.status === "concluido" ? "verde" : "cinza"}>{STATUS.find((s) => s.valor === a.status)?.rotulo}</Selo>
+                  {a.serie_id && <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500"><Repeat className="size-3.5" aria-hidden /> Repete em vários dias</span>}
                   {a.obra_id && (
                     <Link href="/admin/agenda?aba=andamento" className="inline-flex items-center gap-1 text-xs font-semibold text-marca-700 underline">
                       <HardHat className="size-3.5" aria-hidden /> Parte de um serviço em andamento
@@ -199,8 +205,8 @@ export function CalendarioAgenda({ mes, hoje, inicioGrade, fimGrade, agendamento
 
       {/* Novo / editar */}
       <Modal aberto={janela?.tipo === "novo" || janela?.tipo === "editar"} aoFechar={fechar} titulo={janela?.tipo === "editar" ? "Editar agendamento" : "Agendar serviço"}>
-        {janela?.tipo === "editar" && <FormAgendamento key={janela.item.id} item={janela.item} data={janela.item.data} colaboradores={colaboradores} aoConcluir={fechar} />}
-        {janela?.tipo === "novo" && <FormAgendamento key={`novo-${janela.data}`} data={janela.data} colaboradores={colaboradores} aoConcluir={fechar} />}
+        {janela?.tipo === "editar" && <FormAgendamento key={janela.item.id} item={janela.item} data={janela.item.data} colaboradores={colaboradores} clientes={clientes} hoje={hoje} aoConcluir={fechar} />}
+        {janela?.tipo === "novo" && <FormAgendamento key={`novo-${janela.data}`} data={janela.data} colaboradores={colaboradores} clientes={clientes} hoje={hoje} aoConcluir={fechar} />}
       </Modal>
 
       {/* Mover para outro dia */}
@@ -213,19 +219,34 @@ export function CalendarioAgenda({ mes, hoje, inicioGrade, fimGrade, agendamento
   );
 }
 
-function FormAgendamento({ item, data, colaboradores, aoConcluir }: { item?: Agendamento; data: string; colaboradores: { id: string; nome: string }[]; aoConcluir: () => void }) {
+type PropsForm = { item?: Agendamento; data: string; colaboradores: { id: string; nome: string }[]; clientes: Cliente[]; hoje: string; aoConcluir: () => void };
+
+function FormAgendamento({ item, data, colaboradores, clientes, hoje, aoConcluir }: PropsForm) {
   const [estado, enviar] = useActionState(salvarAgendamento, RESULTADO_INICIAL);
   useToastDoResultado(estado, aoConcluir);
+  const [repetir, setRepetir] = useState(false);
   const e = estado.erros ?? {};
   const v = (c: string, o: string) => estado.valores?.[c] ?? o;
   return (
     <form action={enviar} className="space-y-4" noValidate>
       {item && <input type="hidden" name="id" value={item.id} />}
+      <CampoCliente clientes={clientes} valorInicial={v("cliente", item?.cliente ?? "")} erro={e.cliente} />
+      {!item && (
+        <div className="flex gap-1 rounded-xl bg-slate-100 p-1">
+          {[false, true].map((r) => (
+            <button key={String(r)} type="button" onClick={() => setRepetir(r)} aria-pressed={repetir === r}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold ${repetir === r ? "bg-white text-marca-700 shadow-sm ring-1 ring-slate-200" : "text-slate-500"}`}>
+              {r ? <><Repeat className="size-4" aria-hidden /> Vários dias</> : <><CalendarDays className="size-4" aria-hidden /> Um dia</>}
+            </button>
+          ))}
+        </div>
+      )}
+      {repetir && <input type="hidden" name="repetir" value="1" />}
       <div className="grid grid-cols-2 gap-3">
-        <Campo rotulo="Data" name="data" type="date" defaultValue={v("data", data)} erro={e.data} obrigatorio />
+        {repetir ? <div className="col-span-1" /> : <Campo rotulo="Data" name="data" type="date" defaultValue={v("data", data)} erro={e.data} obrigatorio />}
         <CampoHora rotulo="Hora (opcional)" name="hora" defaultValue={v("hora", item?.hora ? formatarHora(item.hora) : "")} erro={e.hora} />
       </div>
-      <Campo rotulo="Cliente" name="cliente" defaultValue={v("cliente", item?.cliente ?? "")} erro={e.cliente} obrigatorio maxLength={200} />
+      {repetir && <EscolherDias hoje={hoje} inicio={data} erro={e.datas} />}
       <div className="grid gap-3 sm:grid-cols-2">
         <Campo rotulo="Endereço (opcional)" name="endereco" defaultValue={v("endereco", item?.endereco ?? "")} maxLength={300} />
         <Campo rotulo="Telefone (opcional)" name="telefone" type="tel" inputMode="tel" defaultValue={v("telefone", item?.telefone ?? "")} maxLength={30} />
@@ -240,6 +261,13 @@ function FormAgendamento({ item, data, colaboradores, aoConcluir }: { item?: Age
         <Selecao rotulo="Situação" name="status" defaultValue={v("status", item.status)}>
           {STATUS.map((s) => <option key={s.valor} value={s.valor}>{s.rotulo}</option>)}
         </Selecao>
+      )}
+      {item?.serie_id && (
+        <label className="flex cursor-pointer items-start gap-2 rounded-xl bg-marca-50 p-3 text-sm text-marca-900 ring-1 ring-marca-200">
+          <input type="hidden" name="serie_id" value={item.serie_id} />
+          <input type="checkbox" name="aplicar_serie" value="1" defaultChecked className="mt-0.5 size-4 accent-marca-600" />
+          <span><strong>Aplicar também nos próximos dias desta repetição</strong> (cliente, hora, endereço, eletricista, serviço e situação; as datas não mudam).</span>
+        </label>
       )}
       <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
         <Botao variante="fantasma" onClick={aoConcluir}>Cancelar</Botao>
@@ -278,6 +306,14 @@ function ExcluirAgendamento({ item, aoFechar }: { item: Agendamento | null; aoFe
         <form action={excluir} className="space-y-5">
           <input type="hidden" name="id" value={item.id} />
           <p className="text-slate-600">O agendamento de <strong>{item.cliente}</strong> em {formatarData(item.data)} será excluído. (Para manter no histórico, edite e marque como “Cancelado”.)</p>
+          {item.serie_id && (
+            <label className="flex cursor-pointer items-start gap-2 text-sm text-slate-700">
+              <input type="hidden" name="serie_id" value={item.serie_id} />
+              <input type="hidden" name="data" value={item.data} />
+              <input type="checkbox" name="toda_serie" value="1" className="mt-0.5 size-4 accent-red-600" />
+              Excluir também os próximos dias desta repetição
+            </label>
+          )}
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Botao variante="fantasma" onClick={aoFechar}>Cancelar</Botao>
             <BotaoEnviar variante="perigo" textoCarregando="Excluindo..."><Trash2 className="size-5" aria-hidden /> Sim, excluir</BotaoEnviar>

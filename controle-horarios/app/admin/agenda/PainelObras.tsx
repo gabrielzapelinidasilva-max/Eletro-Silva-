@@ -13,12 +13,14 @@ import { useToast, useToastDoResultado } from "@/components/ui/Toast";
 import { dataPorExtenso, formatarData, formatarHora } from "@/lib/datas";
 import { linkMapa, linkTelefone } from "@/lib/agenda";
 import type { DiaObra, Obra } from "@/lib/obras";
+import type { Cliente } from "@/lib/clientes";
+import { CampoCliente } from "@/components/CampoCliente";
 import { RESULTADO_INICIAL } from "@/lib/tipos";
 
 type Pessoa = { id: string; nome: string };
 type Janela = { tipo: "nova" } | { tipo: "editar" | "dias" | "excluir"; obra: Obra } | null;
 
-export function PainelObras({ obras, dias, colaboradores, hoje }: { obras: Obra[]; dias: DiaObra[]; colaboradores: Pessoa[]; hoje: string }) {
+export function PainelObras({ obras, dias, colaboradores, clientes, hoje }: { obras: Obra[]; dias: DiaObra[]; colaboradores: Pessoa[]; clientes: Cliente[]; hoje: string }) {
   const [janela, setJanela] = useState<Janela>(null);
   const [verConcluidas, setVerConcluidas] = useState(false);
   const fechar = () => setJanela(null);
@@ -56,10 +58,10 @@ export function PainelObras({ obras, dias, colaboradores, hoje }: { obras: Obra[
       )}
 
       <Modal aberto={janela?.tipo === "nova"} aoFechar={fechar} titulo="Novo serviço em andamento" largura="lg">
-        {janela?.tipo === "nova" && <FormNova colaboradores={colaboradores} hoje={hoje} aoConcluir={fechar} />}
+        {janela?.tipo === "nova" && <FormNova colaboradores={colaboradores} clientes={clientes} hoje={hoje} aoConcluir={fechar} />}
       </Modal>
       <Modal aberto={janela?.tipo === "editar"} aoFechar={fechar} titulo="Editar serviço" largura="lg">
-        {janela?.tipo === "editar" && <FormEditar key={janela.obra.id} obra={janela.obra} aoConcluir={fechar} />}
+        {janela?.tipo === "editar" && <FormEditar key={janela.obra.id} obra={janela.obra} clientes={clientes} aoConcluir={fechar} />}
       </Modal>
       <Modal aberto={janela?.tipo === "dias"} aoFechar={fechar} titulo="Adicionar dias" largura="lg">
         {janela?.tipo === "dias" && (
@@ -160,12 +162,12 @@ function CartaoObra({ obra, dias, colaboradores, hoje, abrir, enviarStatus }: Pr
   );
 }
 
-function CamposInfo({ obra, valores, erros }: { obra?: Obra; valores?: Record<string, string>; erros: Record<string, string> }) {
+function CamposInfo({ obra, clientes, valores, erros }: { obra?: Obra; clientes: Cliente[]; valores?: Record<string, string>; erros: Record<string, string> }) {
   const v = (c: string, o: string) => valores?.[c] ?? o;
   return (
     <>
       <div className="grid gap-3 sm:grid-cols-[1fr_9rem]">
-        <Campo rotulo="Cliente / obra" name="cliente" defaultValue={v("cliente", obra?.cliente ?? "")} erro={erros.cliente} obrigatorio maxLength={200} placeholder="Ex.: Obra Residencial Silva" />
+        <CampoCliente clientes={clientes} rotulo="Cliente / obra" valorInicial={v("cliente", obra?.cliente ?? "")} erro={erros.cliente} placeholder="Ex.: Obra Residencial Silva" />
         <CampoHora rotulo="Hora (opcional)" name="hora" defaultValue={v("hora", obra?.hora ? formatarHora(obra.hora) : "")} erro={erros.hora} />
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -207,13 +209,13 @@ function Rodape({ aoCancelar, texto }: { aoCancelar: () => void; texto: string }
   );
 }
 
-function FormNova({ colaboradores, hoje, aoConcluir }: { colaboradores: Pessoa[]; hoje: string; aoConcluir: () => void }) {
+function FormNova({ colaboradores, clientes, hoje, aoConcluir }: { colaboradores: Pessoa[]; clientes: Cliente[]; hoje: string; aoConcluir: () => void }) {
   const [estado, enviar] = useActionState(criarObra, RESULTADO_INICIAL);
   useToastDoResultado(estado, aoConcluir);
   const e = estado.erros ?? {};
   return (
     <form action={enviar} className="space-y-4" noValidate>
-      <CamposInfo valores={estado.valores} erros={e} />
+      <CamposInfo clientes={clientes} valores={estado.valores} erros={e} />
       <EscolherDias hoje={hoje} erro={e.datas} />
       <EscolherEletricistas colaboradores={colaboradores} erro={e.colaboradores} />
       <Rodape aoCancelar={aoConcluir} texto="Colocar na agenda" />
@@ -221,13 +223,13 @@ function FormNova({ colaboradores, hoje, aoConcluir }: { colaboradores: Pessoa[]
   );
 }
 
-function FormEditar({ obra, aoConcluir }: { obra: Obra; aoConcluir: () => void }) {
+function FormEditar({ obra, clientes, aoConcluir }: { obra: Obra; clientes: Cliente[]; aoConcluir: () => void }) {
   const [estado, enviar] = useActionState(editarObra, RESULTADO_INICIAL);
   useToastDoResultado(estado, aoConcluir);
   return (
     <form action={enviar} className="space-y-4" noValidate>
       <input type="hidden" name="id" value={obra.id} />
-      <CamposInfo obra={obra} valores={estado.valores} erros={estado.erros ?? {}} />
+      <CamposInfo obra={obra} clientes={clientes} valores={estado.valores} erros={estado.erros ?? {}} />
       <p className="text-xs text-slate-500">As mudanças valem também para os próximos dias que já estão na agenda.</p>
       <Rodape aoCancelar={aoConcluir} texto="Salvar" />
     </form>

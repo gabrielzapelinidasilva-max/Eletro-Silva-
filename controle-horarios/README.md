@@ -22,15 +22,16 @@ Aplicativo web para os **eletricistas** registrarem chegada, saída e o serviço
 - Enquanto está com um serviço em aberto e o app aberto, o celular envia a **localização** para o administrador (o aparelho pede permissão).
 - Total de horas de hoje, da semana (a partir de segunda-feira) e do mês.
 
-**Administrador** (seis abas)
+**Administrador** (sete abas)
 - **Resumo**: quem está trabalhando agora (com a **localização** de cada um: há quanto tempo foi atualizada, "Abrir no mapa" e "Ver aqui"), horas da equipe no dia, na semana e no mês, e os últimos registros.
 - **Registros**: todos os registros, com filtros (colaborador, período, cliente), busca por texto, detalhes, edição, exclusão (pede confirmação), total de horas por colaborador e botão **Exportar CSV/Excel**.
 - **Histórico**: a base com **todos os trabalhos já feitos**, desde o primeiro registro, organizados por mês e dia, com o serviço e as observações completos. Tem busca, filtro por colaborador, cliente e período, exportação, e a visão **Por cliente** (quantas vezes cada cliente foi atendido, total de horas, primeira e última visita e quem atendeu; toque no cliente para ver todos os trabalhos dele). Em Por cliente, o botão com a **flechinha** em "Tempo sem serviço" ordena por quem está há **mais** ou **menos** tempo sem serviço, e os filtros "+30 / +60 / +90 / +180 / +365 dias" mostram só os clientes parados há mais tempo.
-- **Agenda**: calendário do ano para agendar serviços (data, hora, cliente, endereço, telefone, serviço, eletricista). Para **trocar de dia**, arraste o serviço para outro dia (no computador) ou use **Mover** (escolher a data, Amanhã, +1 semana). Dá para marcar como concluído ou cancelado. No celular aparece em lista.
+- **Agenda**: calendário do ano para agendar serviços (data, hora, cliente, endereço, telefone, serviço, eletricista). Ao digitar o cliente aparecem as sugestões do **cadastro de clientes**; ao escolher, o endereço e o telefone são preenchidos sozinhos (cliente novo pode ser cadastrado na hora). Em **Vários dias** o mesmo serviço é agendado em vários dias de uma vez (ex.: segunda a sexta por 5 dias, ou escolhendo os dias no calendário); depois dá para editar ou excluir um dia ou os próximos dias da repetição. Para **trocar de dia**, arraste o serviço para outro dia (no computador) ou use **Mover** (escolher a data, Amanhã, +1 semana). Dá para marcar como concluído ou cancelado. No celular aparece em lista.
   - **Serviços em andamento** (dentro de Agenda): obras que duram vários dias. O administrador cadastra o serviço, escolhe os dias (**dias da semana**, ex.: segunda a sexta a partir de uma data por N dias, ou **escolhendo no calendário**, com atalhos "dias úteis do mês" e "mês inteiro") e **um ou mais eletricistas**. Cada dia entra na agenda e aparece na hora para os eletricistas (agrupado em um cartão só). Depois dá para adicionar dias, tirar um dia, editar (vale para os próximos dias), concluir (os dias futuros saem da agenda), reabrir ou excluir.
 - **Gastos**: ganhos, gastos e lucro de cada serviço, **automático**: cada serviço que o eletricista registra (com horas, carro e km) aparece aqui sozinho, marcado como "automático", e continua ligado ao registro (se o eletricista ou o admin editar o registro, os gastos se atualizam; se o registro for excluído, os gastos saem junto). A conta é: **ganhos = valor do serviço + material + mão de obra** (horas × valor da hora; material e mão de obra são nossos, entram como ganho); **gastos = gasolina** (km ÷ km/l do carro × preço do litro); **lucro = ganhos − gastos** e **% de lucro = lucro ÷ ganhos**. O administrador completa o **valor do material** e o **valor cobrado** de cada serviço (aviso "Falta completar os valores" e botão **Completar**; também dá para preencher ao editar o registro na aba Registros). O banco garante que só o administrador altera esses valores. Também dá para fazer um **lançamento avulso** (serviço sem registro de eletricista). Em **Valores usados nas contas**, o administrador muda o preço da gasolina (começa em R$ 6,39), o valor da hora e a lista de carros (Celta 11 km/l, Uno branco 12, Fiorino 10, Saveiro 10, Hilux 8; dá para editar, adicionar e tirar da lista). Cada lançamento guarda o preço da gasolina, o consumo do carro e o valor da hora do dia, então mudar esses valores não altera os serviços antigos. Cada serviço de eletricista tem o botão **Imprimir nota** (nota de serviço pronta para imprimir ou salvar em PDF, com fotos e assinatura).
 - **Gastos fixos por mês** (dentro de Gastos): salários, ferramentas, manutenção do carro e outros. No **último dia de cada mês** eles são descontados automaticamente do lucro daquele mês (Lucro dos serviços − Gastos fixos = **Lucro final**). O administrador edita a lista quando quiser, pausa um item e também ajusta os valores de um mês já fechado (sem mudar os outros meses).
 - **Lixeira** (botão no topo de Registros e de Gastos): tudo o que o administrador exclui (serviço de eletricista ou lançamento avulso) vai para a lixeira e pode ser **restaurado por 30 dias**, voltando exatamente como era (inclusive para o eletricista). Depois de 30 dias some sozinho; também dá para excluir de vez ou esvaziar a lixeira.
+- **Clientes**: cadastro com nome, endereço, telefone e observações, com busca. O botão **Trazer do histórico** cadastra de uma vez os clientes que já aparecem nos registros e na agenda.
 - **Colaboradores**: adicionar, editar, redefinir senha e ativar/desativar. Quem está desativado não consegue entrar, mas o histórico dele continua guardado.
 
 **Segurança**: as regras ficam no próprio banco (Row Level Security). Mesmo que alguém tente acessar os dados "por fora", o eletricista só enxerga os próprios registros e só cria ou altera registros de hoje. Só o administrador vê e altera tudo.
@@ -170,6 +171,7 @@ controle-horarios/
 │   │   ├── registros/      aba Registros (+ exportar CSV)
 │   │   ├── historico/      aba Histórico (todos os trabalhos, por data ou por cliente)
 │   │   ├── agenda/         aba Agenda (calendário do ano, arrastar para trocar de dia)
+│   │   ├── clientes/       aba Clientes (cadastro usado na Agenda)
 │   │   ├── gastos/         aba Gastos (lucro por serviço, gastos fixos por mês, valores usados)
 │   │   ├── nota/[id]/      nota de serviço para imprimir
 │   │   ├── arquivo/        abre fotos e assinaturas (link temporário, só admin)
@@ -179,7 +181,7 @@ controle-horarios/
 ├── lib/                    Supabase, datas/fuso, cálculo de horas, validações, consultas
 ├── middleware.ts           protege as rotas conforme a função do usuário
 ├── supabase/
-│   ├── migrations/         0001 a 0015 (rodar na ordem)
+│   ├── migrations/         0001 a 0016 (rodar na ordem)
 │   ├── instalar-tudo.sql   todas as migrations juntas (colar no SQL Editor)
 │   └── criar-admin.sql     promove um usuário a administrador
 └── scripts/criar-admin.mjs cria o primeiro administrador pelo terminal
@@ -192,7 +194,7 @@ controle-horarios/
 
 **`configuracoes`** (preço da gasolina e valor da hora), **`veiculos`** (carros e km/l) e **`custos_servico`** (lançamentos de gastos): só o administrador acessa.
 
-**`gastos_fixos`**, **`gastos_fixos_mes`** e **`meses_fechados`** (gastos fixos e fechamento de cada mês), **`agendamentos`** (agenda), **`obras`** (serviços em andamento), **`lixeira`**: só o administrador acessa (o eletricista vê só os próprios agendamentos). **`localizacoes`**: a última posição de cada colaborador. Fotos e assinaturas ficam no Storage, no bucket privado `servicos`.
+**`gastos_fixos`**, **`gastos_fixos_mes`** e **`meses_fechados`** (gastos fixos e fechamento de cada mês), **`agendamentos`** (agenda), **`obras`** (serviços em andamento), **`clientes`** (cadastro de clientes), **`lixeira`**: só o administrador acessa (o eletricista vê só os próprios agendamentos). **`localizacoes`**: a última posição de cada colaborador. Fotos e assinaturas ficam no Storage, no bucket privado `servicos`.
 
 **`registros`**
 `id, usuario_id, data, hora_chegada, hora_saida, cliente, servico, observacoes, minutos_trabalhados, criado_em, atualizado_em`
