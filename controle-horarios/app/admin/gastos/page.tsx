@@ -11,7 +11,7 @@ import { classesBotao } from "@/components/ui/estilos";
 import { IndicadorLink } from "@/components/ui/IndicadorLink";
 import { exigirAdmin } from "@/lib/auth";
 import { criarClienteServidor } from "@/lib/supabase/server";
-import { dataValida, formatarData, hojeSP, inicioMes } from "@/lib/datas";
+import { dataValida, formatarData, hojeSP, inicioMes, somarDias } from "@/lib/datas";
 import { calcular, formatarMargem, formatarMoeda, normalizarLancamento, type Configuracoes, type LancamentoCusto, type Veiculo } from "@/lib/gastos";
 import { nomeMes, normalizarFixo, ultimoDiaDoMes, type GastoFixo, type GastoFixoMes } from "@/lib/fixos";
 
@@ -34,12 +34,22 @@ export default async function PaginaGastos({ searchParams }: { searchParams: Pro
 
   if (aba === "fixos") return <AbaFixos hoje={hoje} />;
 
-  const [{ data: cfg }, { data: carros }, { data: lancs }, { data: fixosPeriodo }, { data: cadastrados }] = await Promise.all([
+  // Atalhos de período (o padrão é o mês atual).
+  const mesPassado = inicioMes(somarDias(inicioMes(hoje), -1));
+  const periodos = [
+    { rotulo: "Este mês", de: inicioMes(hoje), ate: hoje },
+    { rotulo: `Mês passado (${nomeMes(mesPassado).split(" ")[0]})`, de: mesPassado, ate: somarDias(inicioMes(hoje), -1) },
+    { rotulo: "Últimos 30 dias", de: somarDias(hoje, -29), ate: hoje },
+    { rotulo: "Este ano", de: `${hoje.slice(0, 4)}-01-01`, ate: hoje },
+  ];
+
+  const [{ data: cfg }, { data: carros }, { data: lancs }, { data: fixosPeriodo }, { data: cadastrados }, { count: doMesPassado }] = await Promise.all([
     supabase.from("configuracoes").select("preco_gasolina, valor_hora_padrao").eq("id", 1).maybeSingle(),
     supabase.from("veiculos").select("id, nome, consumo_km_l, ativo").order("nome"),
     supabase.from("custos_servico").select("*, registros(valor_servico, profiles(nome))").gte("data", de).lte("data", ate).order("data", { ascending: false }).order("criado_em", { ascending: false }).limit(1000),
     supabase.from("gastos_fixos_mes").select("mes, valor").gte("mes", inicioMes(de)).lte("mes", ate),
     supabase.from("gastos_fixos").select("valor").eq("ativo", true),
+    supabase.from("custos_servico").select("id", { count: "exact", head: true }).gte("data", periodos[1].de).lte("data", periodos[1].ate),
   ]);
 
   const config: Configuracoes = {
@@ -93,7 +103,25 @@ export default async function PaginaGastos({ searchParams }: { searchParams: Pro
             <Link href="/admin/gastos" className={classesBotao("fantasma", "md")}><X className="size-4" aria-hidden /> Mês atual <IndicadorLink /></Link>
           )}
         </div>
+        <div className="flex w-full flex-wrap gap-2" aria-label="Atalhos de período">
+          {periodos.map((x) => {
+            const ativo = x.de === de && x.ate === ate;
+            return (
+              <Link key={x.rotulo} href={`/admin/gastos?de=${x.de}&ate=${x.ate}`} aria-current={ativo ? "true" : undefined}
+                className={`rounded-full px-3 py-1.5 text-xs font-bold ring-1 ${ativo ? "bg-marca-600 text-white ring-marca-600" : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50"}`}>
+                {x.rotulo}
+              </Link>
+            );
+          })}
+        </div>
       </form>
+
+      {!filtrado && de === inicioMes(hoje) && (doMesPassado ?? 0) > 0 && (
+        <p className="rounded-xl bg-marca-50 px-4 py-3 text-sm text-marca-900 ring-1 ring-marca-200">
+          Mostrando só {nomeMes(inicioMes(hoje))}. Em {nomeMes(mesPassado)} há {doMesPassado} {doMesPassado === 1 ? "lançamento" : "lançamentos"}.{" "}
+          <Link href={`/admin/gastos?de=${periodos[1].de}&ate=${periodos[1].ate}`} className="font-semibold underline">Ver {nomeMes(mesPassado).split(" ")[0]}</Link>
+        </p>
+      )}
 
       <section aria-label="Totais do período" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Indicador rotulo="Faturamento" valor={formatarMoeda(tot.faturamento)} detalhe={`serviço + material + mão de obra · ${lancamentos.length} ${lancamentos.length === 1 ? "serviço" : "serviços"}`} />
