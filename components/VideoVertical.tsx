@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 
-/** Vídeo vertical do sorteio. Some sozinho se o arquivo ainda não estiver disponível. */
-export default function VideoSorteio({ src, capa }: { src: string; capa?: string }) {
+/** Vídeo vertical (formato de celular). Some sozinho se o arquivo não estiver disponível. */
+export default function VideoVertical({ src, capa, titulo }: { src: string; capa?: string; titulo: string }) {
   const [erro, setErro] = useState(false);
   if (!src || erro) return null;
 
   return (
-    <div className="video-sorteio">
+    <div className="video-vertical">
       <video
         src={`${src}#t=0.5`}
         poster={capa}
@@ -16,7 +16,7 @@ export default function VideoSorteio({ src, capa }: { src: string; capa?: string
         playsInline
         preload="metadata"
         onError={() => setErro(true)}
-        aria-label="Vídeo do sorteio Eletro Silva"
+        aria-label={titulo}
       />
     </div>
   );

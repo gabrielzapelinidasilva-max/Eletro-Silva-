@@ -1,7 +1,7 @@
 import PageHeader from "@/components/PageHeader";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { brl, getOfertas, getSorteioAtual } from "@/lib/data";
-import VideoSorteio from "@/components/VideoSorteio";
+import VideoVertical from "@/components/VideoVertical";
 import { INSTAGRAM, MSG, VIDEO_SORTEIO } from "@/lib/site";
 
 export const metadata = { title: "Ofertas e Sorteios" };
@@ -56,9 +56,9 @@ export default async function Ofertas() {
       </section>
 
       <section className="secao secao-alt">
-        <div className="container sorteio-grid">
-          <VideoSorteio src={VIDEO_SORTEIO} capa="/videos/sorteio-capa.webp" />
-          <div className="sorteio-texto">
+        <div className="container midia-grid">
+          <VideoVertical src={VIDEO_SORTEIO} capa="/videos/sorteio-capa.webp" titulo="Vídeo do sorteio Eletro Silva" />
+          <div className="midia-texto">
             <h2>Sorteios</h2>
             <p>
               Siga{" "}

@@ -24,7 +24,7 @@ export const HORARIOS = [
 // Vídeos: cole aqui o link de incorporação (YouTube "embed" ou arquivo .mp4).
 // Se ficarem vazios, o site mostra um espaço reservado.
 export const VIDEO_QUEM_SOMOS = "";
-export const VIDEO_TOUR_LOJA = "";
+export const VIDEO_TOUR_LOJA = "/videos/tour-loja.mp4";
 // Vídeo do sorteio: arquivo "sorteio.mp4" na pasta "imagens" do Storage da Supabase.
 export const VIDEO_SORTEIO = "https://xilchfpxkvdwrhxhqplw.supabase.co/storage/v1/object/public/imagens/sorteio.mp4";
 
