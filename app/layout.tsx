@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Marcas from "@/components/Marcas";
 import Animacoes from "@/components/Animacoes";
 import { MSG, wa } from "@/lib/site";
 import "@fontsource-variable/inter";
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
     template: "%s | Eletro Silva Materiais Elétricos",
   },
   description:
-    "Tudo em material elétrico em Braço do Norte/SC. Do fio à iluminação, venda e instalação elétrica desde 2012. Orçamento pelo WhatsApp (48) 99814-9358.",
+    "Tudo em material elétrico em Braço do Norte/SC. Do fio à iluminação, venda e instalação elétrica com mais de 20 anos de experiência. Orçamento pelo WhatsApp (48) 99814-9358.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Header />
         <main>{children}</main>
+        <Marcas />
         <Footer />
         <Animacoes />
         <a className="whats-float" href={wa(MSG.orcamento)} target="_blank" rel="noopener" aria-label="Fale no WhatsApp">

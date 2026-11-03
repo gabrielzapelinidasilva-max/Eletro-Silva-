@@ -3,7 +3,8 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
-const ALVOS = ".card, .secao h2, .categoria-chip, .avalie-qr, .avalie-passos li, .mapa, .horarios";
+const ALVOS =
+  ".card, .secao h2, .categoria-chip, .avalie-qr, .avalie-passos li, .mapa, .horarios, .marcas-grade li, .qs-fotos-item, .qs-foto";
 
 /** Faz os blocos da página surgirem suavemente conforme entram na tela. */
 export default function Animacoes() {

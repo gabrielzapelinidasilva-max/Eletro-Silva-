@@ -53,6 +53,20 @@ export const MENU = [
   { href: "/avalie", label: "Nos Avalie" },
 ];
 
+// Marcas parceiras (apresentação institucional). Sem url = ainda sem site oficial confirmado.
+export const MARCAS: { nome: string; logo: string; url?: string }[] = [
+  { nome: "MarGirius", logo: "/marcas/margirius.webp", url: "https://www.margirius.com.br" },
+  { nome: "Steck", logo: "/marcas/steck.webp", url: "https://www.steck.com.br" },
+  { nome: "Segurimax", logo: "/marcas/segurimax.webp", url: "https://www.segurimax.com.br" },
+  { nome: "Blumenau Iluminação", logo: "/marcas/blumenau.webp", url: "https://blumenauiluminacao.com.br" },
+  { nome: "Sil Fios e Cabos", logo: "/marcas/sil.webp", url: "https://www.sil.com.br" },
+  { nome: "RCM Cabos Elétricos", logo: "/marcas/rcm.webp", url: "https://rcmcaboseletricos.com.br" },
+  { nome: "Exatron", logo: "/marcas/exatron.webp", url: "https://www.exatron.com.br" },
+  { nome: "Adesso", logo: "/marcas/adesso.webp" },
+  { nome: "Sibratec", logo: "/marcas/sibratec.webp", url: "https://www.sibratec.ind.br" },
+  { nome: "Lumanti", logo: "/marcas/lumanti.webp", url: "https://lumanti.com.br" },
+];
+
 export const CATEGORIAS = [
   { slug: "fios-e-cabos", nome: "Fios e cabos" },
   { slug: "disjuntores-e-quadros", nome: "Disjuntores e quadros" },

@@ -4,7 +4,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import { CATEGORIAS, MSG } from "@/lib/site";
 
 const DESTAQUES = [
-  { Icone: CalendarCheck, titulo: "Desde 2012", texto: "Mais de 14 anos cuidando da parte elétrica da região." },
+  { Icone: CalendarCheck, titulo: "Mais de 20 anos de experiência", texto: "Conhecimento técnico de quem vive o setor elétrico." },
   { Icone: Wrench, titulo: "Venda e instalação", texto: "O material certo e a equipe para instalar." },
   { Icone: Truck, titulo: "Entregamos em Braço do Norte e região", texto: "Faça seu orçamento pelo WhatsApp." },
 ];

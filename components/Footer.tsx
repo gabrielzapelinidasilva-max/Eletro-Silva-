@@ -7,7 +7,7 @@ export default function Footer() {
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="footer-logo" src="/logo-branco.webp" alt="Eletro Silva Materiais Elétricos" width={440} height={170} />
-          <strong>Eletro Silva Materiais Elétricos</strong> · Desde 2012
+          <strong>Eletro Silva Materiais Elétricos</strong> · Mais de 20 anos de experiência
           <p>{ENDERECO_CURTO}</p>
           <p>Seg a sex 8h–12h / 13h30–18h · Sáb 8h–12h</p>
         </div>
