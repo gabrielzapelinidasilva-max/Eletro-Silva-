@@ -18,6 +18,18 @@ function texto(form: FormData, campo: string) {
   return String(form.get(campo) ?? "").trim();
 }
 
+/** "Encarregado" é um eletricista que também gerencia a Agenda. */
+function lerEncarregado(form: FormData) {
+  return texto(form, "funcao") === "encarregado";
+}
+
+/** Grava se é encarregado (o administrador pode alterar perfis pelo RLS). */
+async function salvarEncarregado(filtro: { id?: string; email?: string }, encarregado: boolean) {
+  const supabase = await criarClienteServidor();
+  const q = supabase.from("profiles").update({ encarregado });
+  return filtro.id ? q.eq("id", filtro.id) : q.eq("email", filtro.email!);
+}
+
 function lerDados(form: FormData) {
   return {
     nome: texto(form, "nome"),
@@ -98,6 +110,7 @@ export async function criarColaborador(_a: Resultado, form: FormData): Promise<R
     if (erroPerfil) return falha("Usuário criado, mas houve um erro ao salvar o perfil. Edite o colaborador para corrigir.");
   }
 
+  await salvarEncarregado({ email: d.email }, d.funcao === "eletricista" && lerEncarregado(form));
   atualizarTelas();
   return sucesso(`${d.nome} foi adicionado(a). Já pode entrar com o e-mail e a senha informados.`);
 }
@@ -133,6 +146,7 @@ export async function editarColaborador(_a: Resultado, form: FormData): Promise<
     if (error) return falha("Não foi possível salvar. Tente novamente.", form);
   }
 
+  await salvarEncarregado({ id }, d.funcao === "eletricista" && lerEncarregado(form));
   atualizarTelas();
   return sucesso("Dados do colaborador atualizados.");
 }

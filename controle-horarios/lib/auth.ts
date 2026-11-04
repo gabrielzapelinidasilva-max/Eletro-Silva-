@@ -31,6 +31,22 @@ export async function exigirAdmin(): Promise<Perfil> {
   return perfil;
 }
 
+/** Quem pode ver e mexer na Agenda: administrador ou encarregado. */
+export function podeGerenciarAgenda(perfil: Perfil): boolean {
+  return perfil.funcao === "admin" || (perfil.funcao === "eletricista" && !!perfil.encarregado);
+}
+
+export async function exigirGestorAgenda(): Promise<Perfil> {
+  const perfil = await exigirLogin();
+  if (!podeGerenciarAgenda(perfil)) redirect("/eletricista");
+  return perfil;
+}
+
+/** Nome da função para mostrar na tela. */
+export function rotuloFuncao(perfil: Pick<Perfil, "funcao" | "encarregado">): string {
+  return perfil.funcao === "admin" ? "Administrador" : perfil.encarregado ? "Encarregado" : "Eletricista";
+}
+
 export async function exigirEletricista(): Promise<Perfil> {
   const perfil = await exigirLogin();
   if (perfil.funcao !== "eletricista") redirect("/admin");

@@ -6,6 +6,8 @@ export type Perfil = {
   email: string;
   telefone: string | null;
   funcao: Funcao;
+  /** Eletricista que também gerencia a Agenda. */
+  encarregado?: boolean;
   ativo: boolean;
   criado_em: string;
 };

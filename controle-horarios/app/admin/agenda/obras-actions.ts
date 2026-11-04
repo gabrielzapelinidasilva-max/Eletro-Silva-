@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { exigirAdmin } from "@/lib/auth";
+import { exigirGestorAgenda } from "@/lib/auth";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { dataValida, formatarData, hojeSP, horaValida } from "@/lib/datas";
 import { MAX_DIAS_OBRA } from "@/lib/obras";
@@ -70,7 +70,7 @@ function resumoDias(datas: string[]) {
 }
 
 export async function criarObra(_a: Resultado, form: FormData): Promise<Resultado> {
-  await exigirAdmin();
+  await exigirGestorAgenda();
   const { dados, erros } = lerInfo(form);
   const { datas, colaboradores } = lerDias(form, erros);
   if (Object.keys(erros).length) return falhaValidacao(erros, form);
@@ -89,7 +89,7 @@ export async function criarObra(_a: Resultado, form: FormData): Promise<Resultad
 }
 
 export async function adicionarDiasObra(_a: Resultado, form: FormData): Promise<Resultado> {
-  await exigirAdmin();
+  await exigirGestorAgenda();
   const erros: Record<string, string> = {};
   const { datas, colaboradores } = lerDias(form, erros);
   if (Object.keys(erros).length) return falhaValidacao(erros, form);
@@ -106,7 +106,7 @@ export async function adicionarDiasObra(_a: Resultado, form: FormData): Promise<
 
 /** Edita as informações; os dias que ainda vão acontecer recebem as novas informações. */
 export async function editarObra(_a: Resultado, form: FormData): Promise<Resultado> {
-  await exigirAdmin();
+  await exigirGestorAgenda();
   const { dados, erros } = lerInfo(form);
   if (Object.keys(erros).length) return falhaValidacao(erros, form);
   const id = texto(form, "id");
@@ -124,7 +124,7 @@ export async function editarObra(_a: Resultado, form: FormData): Promise<Resulta
  * Reabrir: volta para "em andamento" e os dias futuros cancelados voltam para a agenda.
  */
 export async function alterarStatusObra(_a: Resultado, form: FormData): Promise<Resultado> {
-  await exigirAdmin();
+  await exigirGestorAgenda();
   const id = texto(form, "id");
   const concluir = texto(form, "status") === "concluida";
   const supabase = await criarClienteServidor();
@@ -138,7 +138,7 @@ export async function alterarStatusObra(_a: Resultado, form: FormData): Promise<
 }
 
 export async function excluirObra(_a: Resultado, form: FormData): Promise<Resultado> {
-  await exigirAdmin();
+  await exigirGestorAgenda();
   const supabase = await criarClienteServidor();
   const { data, error } = await supabase.from("obras").delete().eq("id", texto(form, "id")).select("cliente");
   if (error || !data?.length) return falha("Não foi possível excluir. Tente novamente.");
@@ -148,7 +148,7 @@ export async function excluirObra(_a: Resultado, form: FormData): Promise<Result
 
 /** Tira um dia da obra (de todos os eletricistas daquele dia). */
 export async function tirarDiaObra(obraId: string, data: string): Promise<Resultado> {
-  await exigirAdmin();
+  await exigirGestorAgenda();
   if (!dataValida(data)) return falha("Data inválida.");
   const supabase = await criarClienteServidor();
   const { data: linhas, error } = await supabase.from("agendamentos").delete().eq("obra_id", obraId).eq("data", data).select("id");

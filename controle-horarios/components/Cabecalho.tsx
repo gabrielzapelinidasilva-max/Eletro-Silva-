@@ -2,6 +2,7 @@ import { LogOut } from "lucide-react";
 import { sair } from "@/app/actions";
 import { Logo } from "./Logo";
 import type { Perfil } from "@/lib/tipos";
+import { rotuloFuncao } from "@/lib/auth";
 
 export function Cabecalho({ perfil, children }: { perfil: Perfil; children?: React.ReactNode }) {
   return (
@@ -17,7 +18,7 @@ export function Cabecalho({ perfil, children }: { perfil: Perfil; children?: Rea
         <div className="flex items-center gap-2">
           <div className="hidden text-right md:block">
             <p className="text-sm font-semibold leading-tight">{perfil.nome}</p>
-            <p className="text-xs text-marca-100">{perfil.funcao === "admin" ? "Administrador" : "Eletricista"}</p>
+            <p className="text-xs text-marca-100">{rotuloFuncao(perfil)}</p>
           </div>
           <form action={sair}>
             <button

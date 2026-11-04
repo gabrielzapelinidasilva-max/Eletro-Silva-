@@ -22,9 +22,12 @@ Aplicativo web para os **eletricistas** registrarem chegada, saída e o serviço
 - Enquanto está com um serviço em aberto e o app aberto, o celular envia a **localização** para o administrador (o aparelho pede permissão).
 - Total de horas de hoje, da semana (a partir de segunda-feira) e do mês.
 
+**Encarregado**
+- É um eletricista (mesma tela: chegada, saída, meus registros, minha agenda) que **também vê e mexe na Agenda** (calendário, serviços em andamento e clientes ao agendar). Não vê Resumo, Registros, Histórico, Gastos, Clientes nem Colaboradores. O administrador escolhe a função "Encarregado" em **Colaboradores → Editar**.
+
 **Administrador** (sete abas)
 - **Resumo**: quem está trabalhando agora (com a **localização** de cada um: há quanto tempo foi atualizada, "Abrir no mapa" e "Ver aqui"), horas da equipe no dia, na semana e no mês, e os últimos registros.
-- **Registros**: todos os registros, com filtros (colaborador, período, cliente), busca por texto, detalhes, edição, exclusão (pede confirmação), total de horas por colaborador e botão **Exportar CSV/Excel**.
+- **Registros**: botão **Nota avulsa** para lançar um serviço que não foi registrado pelo celular (colaborador, data, horários, cliente, serviço, carro/km, material e valor cobrado); entra nos Registros, no Histórico e em Gastos. Todos os registros, com filtros (colaborador, período, cliente), busca por texto, detalhes, edição, exclusão (pede confirmação), total de horas por colaborador e botão **Exportar CSV/Excel**.
 - **Histórico**: a base com **todos os trabalhos já feitos**, desde o primeiro registro, organizados por mês e dia, com o serviço e as observações completos. Tem busca, filtro por colaborador, cliente e período, exportação, e a visão **Por cliente** (quantas vezes cada cliente foi atendido, total de horas, primeira e última visita e quem atendeu; toque no cliente para ver todos os trabalhos dele). Em Por cliente, o botão com a **flechinha** em "Tempo sem serviço" ordena por quem está há **mais** ou **menos** tempo sem serviço, e os filtros "+30 / +60 / +90 / +180 / +365 dias" mostram só os clientes parados há mais tempo.
 - **Agenda**: calendário do ano para agendar serviços (data, hora, cliente, endereço, telefone, serviço, eletricista). Ao digitar o cliente aparecem as sugestões do **cadastro de clientes**; ao escolher, o endereço e o telefone são preenchidos sozinhos (cliente novo pode ser cadastrado na hora). Em **Vários dias** o mesmo serviço é agendado em vários dias de uma vez (ex.: segunda a sexta por 5 dias, ou escolhendo os dias no calendário); depois dá para editar ou excluir um dia ou os próximos dias da repetição. Para **trocar de dia**, arraste o serviço para outro dia (no computador) ou use **Mover** (escolher a data, Amanhã, +1 semana). Dá para marcar como concluído ou cancelado. No celular aparece em lista.
   - **Serviços em andamento** (dentro de Agenda): obras que duram vários dias. O administrador cadastra o serviço, escolhe os dias (**dias da semana**, ex.: segunda a sexta a partir de uma data por N dias, ou **escolhendo no calendário**, com atalhos "dias úteis do mês" e "mês inteiro") e **um ou mais eletricistas**. Cada dia entra na agenda e aparece na hora para os eletricistas (agrupado em um cartão só). Depois dá para adicionar dias, tirar um dia, editar (vale para os próximos dias), concluir (os dias futuros saem da agenda), reabrir ou excluir.
@@ -181,7 +184,7 @@ controle-horarios/
 ├── lib/                    Supabase, datas/fuso, cálculo de horas, validações, consultas
 ├── middleware.ts           protege as rotas conforme a função do usuário
 ├── supabase/
-│   ├── migrations/         0001 a 0016 (rodar na ordem)
+│   ├── migrations/         0001 a 0017 (rodar na ordem)
 │   ├── instalar-tudo.sql   todas as migrations juntas (colar no SQL Editor)
 │   └── criar-admin.sql     promove um usuário a administrador
 └── scripts/criar-admin.mjs cria o primeiro administrador pelo terminal

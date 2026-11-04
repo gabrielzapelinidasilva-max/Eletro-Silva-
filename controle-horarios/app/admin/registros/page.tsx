@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { Filtros } from "./Filtros";
 import { LinkLixeira } from "@/components/LinkLixeira";
 import { TabelaRegistros } from "./TabelaRegistros";
+import { NovaNota } from "./NovaNota";
+import type { Cliente } from "@/lib/clientes";
 import { Cartao, Indicador, TituloSecao } from "@/components/ui/Cartao";
 import { exigirAdmin } from "@/lib/auth";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { buscarRegistros, lerFiltros, totaisPorColaborador } from "@/lib/consultas";
-import { formatarData } from "@/lib/datas";
+import { formatarData, hojeSP } from "@/lib/datas";
 import { formatarMinutos, somarMinutos } from "@/lib/horas";
 import type { Perfil, VeiculoOpcao } from "@/lib/tipos";
 
@@ -19,10 +21,11 @@ export default async function PaginaRegistros({ searchParams }: { searchParams: 
   const filtros = lerFiltros(await searchParams);
   const supabase = await criarClienteServidor();
 
-  const [registros, { data: pessoas }, { data: carros }] = await Promise.all([
+  const [registros, { data: pessoas }, { data: carros }, { data: clientes }] = await Promise.all([
     buscarRegistros(supabase, filtros),
     supabase.from("profiles").select("id, nome, ativo").order("nome"),
     supabase.from("veiculos").select("id, nome, consumo_km_l").order("nome"),
+    supabase.from("clientes").select("id, nome, endereco, telefone, observacoes").order("nome"),
   ]);
   const veiculos: VeiculoOpcao[] = (carros ?? []).map((c) => ({ ...c, consumo_km_l: Number(c.consumo_km_l) }));
   const totais = totaisPorColaborador(registros);
@@ -36,7 +39,15 @@ export default async function PaginaRegistros({ searchParams }: { searchParams: 
             Período de {formatarData(filtros.de)} a {formatarData(filtros.ate)}.
           </p>
         </div>
-        <LinkLixeira />
+        <div className="flex flex-wrap gap-2">
+          <LinkLixeira />
+          <NovaNota
+            colaboradores={(pessoas ?? []).filter((x) => x.ativo)}
+            veiculos={veiculos}
+            clientes={(clientes ?? []) as Cliente[]}
+            hoje={hojeSP()}
+          />
+        </div>
       </div>
 
       <Filtros filtros={filtros} colaboradores={(pessoas ?? []) as Pick<Perfil, "id" | "nome" | "ativo">[]} />

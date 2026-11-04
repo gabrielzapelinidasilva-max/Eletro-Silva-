@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { exigirAdmin } from "@/lib/auth";
+import { exigirGestorAgenda } from "@/lib/auth";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { dataValida, formatarData, horaValida } from "@/lib/datas";
 import { falha, falhaValidacao, sucesso } from "@/lib/resultado";
@@ -19,7 +19,7 @@ function atualizar() {
 }
 
 export async function salvarAgendamento(_a: Resultado, form: FormData): Promise<Resultado> {
-  await exigirAdmin();
+  await exigirGestorAgenda();
   const erros: Record<string, string> = {};
   const id = texto(form, "id");
   const data = texto(form, "data");
@@ -70,7 +70,7 @@ export async function salvarAgendamento(_a: Resultado, form: FormData): Promise<
 
 /** Move um agendamento para outro dia (arrastar e soltar ou botão "Mover"). */
 export async function moverAgendamento(id: string, data: string): Promise<Resultado> {
-  await exigirAdmin();
+  await exigirGestorAgenda();
   if (!dataValida(data)) return falha("Data inválida.");
   const supabase = await criarClienteServidor();
   const { data: linha, error } = await supabase.from("agendamentos").update({ data }).eq("id", id).select("cliente").single();
@@ -80,7 +80,7 @@ export async function moverAgendamento(id: string, data: string): Promise<Result
 }
 
 export async function excluirAgendamento(_a: Resultado, form: FormData): Promise<Resultado> {
-  await exigirAdmin();
+  await exigirGestorAgenda();
   const supabase = await criarClienteServidor();
   const serie = texto(form, "serie_id");
   // "Excluir também os próximos dias desta repetição"

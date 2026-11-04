@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, Contact, LayoutDashboard, ClipboardList, History, Users, Wallet } from "lucide-react";
+import { CalendarDays, Clock, Contact, LayoutDashboard, ClipboardList, History, Users, Wallet } from "lucide-react";
 import { IndicadorLink } from "@/components/ui/IndicadorLink";
 
 const ABAS = [
@@ -15,12 +15,19 @@ const ABAS = [
   { href: "/admin/colaboradores", rotulo: "Colaboradores", curto: "Equipe", icone: Users },
 ];
 
-export function AdminNav() {
+/** Encarregado: a área dele (eletricista) e a Agenda. */
+const ABAS_ENCARREGADO = [
+  { href: "/eletricista", rotulo: "Meus horários", curto: "Horários", icone: Clock },
+  { href: "/admin/agenda", rotulo: "Agenda", curto: "Agenda", icone: CalendarDays },
+];
+
+export function AdminNav({ modo = "admin" }: { modo?: "admin" | "encarregado" }) {
   const caminho = usePathname();
+  const abas = modo === "admin" ? ABAS : ABAS_ENCARREGADO;
   return (
     <nav aria-label="Seções do administrador" className="mx-auto max-w-6xl px-2 sm:px-4">
       <ul className="flex gap-1">
-        {ABAS.map(({ href, rotulo, curto, icone: Icone }) => {
+        {abas.map(({ href, rotulo, curto, icone: Icone }) => {
           const ativa = href === "/admin" ? caminho === "/admin" : caminho.startsWith(href);
           return (
             <li key={href} className="min-w-0 flex-1 lg:flex-none">

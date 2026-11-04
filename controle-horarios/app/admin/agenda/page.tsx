@@ -7,7 +7,7 @@ import { classesBotao } from "@/components/ui/estilos";
 import { IndicadorLink } from "@/components/ui/IndicadorLink";
 import type { DiaObra, Obra } from "@/lib/obras";
 import type { Cliente } from "@/lib/clientes";
-import { exigirAdmin } from "@/lib/auth";
+import { exigirGestorAgenda } from "@/lib/auth";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { hojeSP, inicioSemana, somarDias } from "@/lib/datas";
 import { ultimoDiaDoMes } from "@/lib/fixos";
@@ -16,7 +16,7 @@ import type { Agendamento } from "@/lib/agenda";
 export const metadata: Metadata = { title: "Agenda" };
 
 export default async function PaginaAgenda({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  await exigirAdmin();
+  await exigirGestorAgenda();
   const p = await searchParams;
   const hoje = hojeSP();
   const aba = p.aba === "andamento" ? "andamento" : "calendario";

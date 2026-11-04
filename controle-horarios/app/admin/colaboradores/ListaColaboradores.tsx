@@ -45,7 +45,7 @@ export function ListaColaboradores({ colaboradores, meuId }: { colaboradores: Pe
                       {c.nome} {c.id === meuId && <span className="text-xs font-medium text-slate-500">(você)</span>}
                     </p>
                     <div className="mt-0.5 flex flex-wrap gap-1.5">
-                      <Selo cor={c.funcao === "admin" ? "ambar" : "azul"}>{c.funcao === "admin" ? "Administrador" : "Eletricista"}</Selo>
+                      <Selo cor={c.funcao === "admin" ? "ambar" : c.encarregado ? "verde" : "azul"}>{c.funcao === "admin" ? "Administrador" : c.encarregado ? "Encarregado" : "Eletricista"}</Selo>
                       <Selo cor={c.ativo ? "verde" : "cinza"}>{c.ativo ? "Ativo" : "Inativo"}</Selo>
                     </div>
                   </div>
@@ -131,8 +131,10 @@ function FormColaborador({ perfil, acao, aoConcluir }: { perfil?: Perfil; acao: 
       {!perfil && (
         <Campo rotulo="Senha inicial" name="senha" type="text" erro={e.senha} obrigatorio autoComplete="new-password" ajuda="Mínimo de 6 caracteres. Passe essa senha para o colaborador." />
       )}
-      <Selecao rotulo="Função" name="funcao" defaultValue={v("funcao", perfil?.funcao ?? "eletricista")} erro={e.funcao} obrigatorio>
+      <Selecao rotulo="Função" name="funcao" defaultValue={v("funcao", perfil?.encarregado && perfil.funcao === "eletricista" ? "encarregado" : perfil?.funcao ?? "eletricista")} erro={e.funcao} obrigatorio
+        ajuda="Encarregado: tem a mesma tela do eletricista e também vê e mexe na Agenda.">
         <option value="eletricista">Eletricista</option>
+        <option value="encarregado">Encarregado (eletricista + Agenda)</option>
         <option value="admin">Administrador</option>
       </Selecao>
       <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
