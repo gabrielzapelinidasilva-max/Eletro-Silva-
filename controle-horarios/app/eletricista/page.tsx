@@ -33,6 +33,7 @@ export default async function PaginaEletricista({ searchParams }: { searchParams
     supabase.from("agendamentos").select("*").eq("colaborador_id", perfil.id).eq("status", "agendado").gte("data", hoje)
       .order("data").order("hora", { nullsFirst: false }).limit(400),
   ]);
+  const { data: chavePublica } = await supabase.rpc("lembretes_chave_publica");
   const veiculos: VeiculoOpcao[] = (carros ?? []).map((c) => ({ ...c, consumo_km_l: Number(c.consumo_km_l) }));
 
   const registros = (lista ?? []) as Registro[];
@@ -49,7 +50,7 @@ export default async function PaginaEletricista({ searchParams }: { searchParams
 
       <PainelPonto aberto={(aberto as Registro | null) ?? null} hoje={hoje} horaAgora={horaAgoraSP()} veiculos={veiculos} usuarioId={perfil.id} clienteSugerido={clienteSugerido} />
 
-      <Lembretes />
+      <Lembretes chavePublica={chavePublica} />
       <AgendaAoVivo usuarioId={perfil.id} itens={(agenda ?? []) as Agendamento[]} />
       <MinhaAgenda itens={(agenda ?? []) as Agendamento[]} hoje={hoje} podeIniciar={!aberto} />
 

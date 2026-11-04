@@ -5,7 +5,6 @@ import { Bell, BellOff, BellRing, Share, Smartphone } from "lucide-react";
 import { Botao } from "@/components/ui/Botao";
 import { useToast } from "@/components/ui/Toast";
 import { clienteNavegador } from "@/lib/supabase/browser";
-import { VAPID_PUBLIC_KEY } from "@/lib/push";
 
 type Estado = "carregando" | "sem-suporte" | "iphone" | "negado" | "desligado" | "ligado";
 
@@ -18,7 +17,7 @@ function chaveBytes(base64: string) {
  * Ativa os lembretes no celular: 07:45 e 13:45 (chegada) e 11:50 e 17:45 (saída).
  * Cada celular ativa uma vez; a escolha fica salva no banco.
  */
-export function Lembretes() {
+export function Lembretes({ chavePublica }: { chavePublica: string | null }) {
   const [estado, setEstado] = useState<Estado>("carregando");
   const [ocupado, setOcupado] = useState(false);
   const toast = useToast();
@@ -56,7 +55,7 @@ export function Lembretes() {
       }
       const reg = await navigator.serviceWorker.ready;
       const inscricao = (await reg.pushManager.getSubscription())
-        ?? (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: chaveBytes(VAPID_PUBLIC_KEY) }));
+        ?? (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: chaveBytes(chavePublica!) }));
       await salvar(inscricao);
       setEstado("ligado");
       toast("sucesso", "Lembretes ativados neste celular.");
@@ -94,7 +93,8 @@ export function Lembretes() {
     }
   }
 
-  if (estado === "carregando" || estado === "sem-suporte") return null;
+  // Sem chave = lembretes ainda não ligados no servidor
+  if (!chavePublica || estado === "carregando" || estado === "sem-suporte") return null;
 
   return (
     <section aria-label="Lembretes" className={`rounded-xl p-4 ring-1 ${estado === "ligado" ? "bg-white ring-slate-200" : "bg-marca-50 ring-marca-200"}`}>

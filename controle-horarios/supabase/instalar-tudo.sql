@@ -1071,16 +1071,60 @@ begin
 end $$;
 revoke all on public.push_inscricoes from anon;
 
--- Endereço do site e senha que o site confere ao receber o pedido do banco.
--- (A senha é gravada à parte, fora dos arquivos do projeto.) Sem acesso pelo app.
+-- Endereço do site, senha que o banco manda ao site e chaves do Web Push (VAPID).
+-- A senha nasce aqui mesmo (aleatória) e as chaves são criadas pelo site no primeiro uso:
+-- nenhum segredo fica nos arquivos do projeto. Sem acesso pelo app (RLS sem regras).
 create table if not exists public.lembretes_config (
   id integer primary key default 1 check (id = 1),
   url text,
-  segredo text
+  segredo text,
+  vapid_publica text,
+  vapid_privada text
 );
+alter table public.lembretes_config add column if not exists vapid_publica text;
+alter table public.lembretes_config add column if not exists vapid_privada text;
 alter table public.lembretes_config enable row level security;
 revoke all on public.lembretes_config from anon, authenticated;
-insert into public.lembretes_config (id) values (1) on conflict (id) do nothing;
+insert into public.lembretes_config (id, segredo) values (1, encode(extensions.gen_random_bytes(32), 'hex')) on conflict (id) do nothing;
+update public.lembretes_config set segredo = encode(extensions.gen_random_bytes(32), 'hex') where id = 1 and segredo is null;
+
+-- Confere a senha que chegou no site
+create or replace function public._lembretes_conferir(p_segredo text)
+returns void language plpgsql stable security definer set search_path = public as $$
+begin
+  if p_segredo is null or p_segredo is distinct from (select segredo from public.lembretes_config where id = 1) then
+    raise exception 'sem_permissao' using errcode = '42501';
+  end if;
+end $$;
+revoke execute on function public._lembretes_conferir(text) from public, anon, authenticated;
+
+-- Chaves do Web Push: o site lê (com a senha) e grava na primeira vez
+create or replace function public.lembretes_vapid(p_segredo text)
+returns table (publica text, privada text) language plpgsql security definer set search_path = public as $$
+begin
+  perform public._lembretes_conferir(p_segredo);
+  return query select c.vapid_publica, c.vapid_privada from public.lembretes_config c where c.id = 1;
+end $$;
+
+create or replace function public.lembretes_salvar_vapid(p_segredo text, p_publica text, p_privada text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  perform public._lembretes_conferir(p_segredo);
+  update public.lembretes_config set vapid_publica = p_publica, vapid_privada = p_privada where id = 1 and vapid_publica is null;
+end $$;
+
+-- Só a chave pública (o celular precisa dela para ativar)
+create or replace function public.lembretes_chave_publica()
+returns text language sql stable security definer set search_path = public as $$
+  select vapid_publica from public.lembretes_config where id = 1;
+$$;
+
+revoke execute on function public.lembretes_vapid(text) from public;
+revoke execute on function public.lembretes_salvar_vapid(text, text, text) from public;
+revoke execute on function public.lembretes_chave_publica() from public;
+grant execute on function public.lembretes_vapid(text) to anon, authenticated;
+grant execute on function public.lembretes_salvar_vapid(text, text, text) to anon, authenticated;
+grant execute on function public.lembretes_chave_publica() to anon, authenticated;
 
 -- Salvar / tirar o celular do usuário logado (um celular fica com quem ativou por último)
 create or replace function public.salvar_inscricao_push(p_endpoint text, p_p256dh text, p_auth text)
@@ -1103,13 +1147,11 @@ grant execute on function public.salvar_inscricao_push(text, text, text) to auth
 grant execute on function public.remover_inscricao_push(text) to authenticated;
 
 -- Quem recebe cada lembrete (o site chama com a senha)
-create or replace function public.lembretes_destinatarios(p_segredo text, p_tipo text)
+create or replace function public.lembretes_destinatarios(p_segredo text, p_tipo text, p_usuario uuid default null)
 returns table (endpoint text, p256dh text, auth text, nome text)
 language plpgsql security definer set search_path = public as $$
 begin
-  if p_segredo is null or p_segredo is distinct from (select segredo from public.lembretes_config where id = 1) then
-    raise exception 'sem_permissao' using errcode = '42501';
-  end if;
+  perform public._lembretes_conferir(p_segredo);
   return query
     select i.endpoint, i.p256dh, i.auth, p.nome
       from public.push_inscricoes i
@@ -1121,6 +1163,8 @@ begin
              -- saída: quem está com atendimento aberto hoje (e não está em intervalo)
              when 'saida' then exists (select 1 from public.registros r where r.usuario_id = p.id and r.hora_saida is null
                                          and r.data = public.hoje_sp() and r.intervalo_inicio is null)
+             -- teste: só os celulares de quem pediu
+             when 'teste' then p.id = p_usuario
              else false
            end;
 end $$;
@@ -1129,19 +1173,17 @@ end $$;
 create or replace function public.lembretes_remover(p_segredo text, p_endpoints text[])
 returns void language plpgsql security definer set search_path = public as $$
 begin
-  if p_segredo is null or p_segredo is distinct from (select segredo from public.lembretes_config where id = 1) then
-    raise exception 'sem_permissao' using errcode = '42501';
-  end if;
+  perform public._lembretes_conferir(p_segredo);
   update public.push_inscricoes set ativa = false where endpoint = any (p_endpoints);
 end $$;
 
-revoke execute on function public.lembretes_destinatarios(text, text) from public;
+revoke execute on function public.lembretes_destinatarios(text, text, uuid) from public;
 revoke execute on function public.lembretes_remover(text, text[]) from public;
-grant execute on function public.lembretes_destinatarios(text, text) to anon, authenticated;
+grant execute on function public.lembretes_destinatarios(text, text, uuid) to anon, authenticated;
 grant execute on function public.lembretes_remover(text, text[]) to anon, authenticated;
 
 -- Chama o site para mandar o lembrete (usado pelo pg_cron)
-create or replace function public.disparar_lembrete(p_tipo text)
+create or replace function public.disparar_lembrete(p_tipo text, p_usuario uuid default null)
 returns bigint language plpgsql security definer set search_path = public, extensions as $$
 declare
   c public.lembretes_config%rowtype;
@@ -1151,11 +1193,21 @@ begin
   return net.http_post(
     url := c.url,
     headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ' || c.segredo),
-    body := jsonb_build_object('tipo', p_tipo),
+    body := jsonb_build_object('tipo', p_tipo, 'usuario', p_usuario),
     timeout_milliseconds := 30000
   );
 end $$;
-revoke execute on function public.disparar_lembrete(text) from public, anon, authenticated;
+revoke execute on function public.disparar_lembrete(text, uuid) from public, anon, authenticated;
+
+-- "Enviar teste" no celular: o banco pede ao site uma notificação só para quem pediu
+create or replace function public.pedir_lembrete_teste()
+returns bigint language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null or not public.is_ativo() then raise exception 'sem_permissao' using errcode = '42501'; end if;
+  return public.disparar_lembrete('teste', auth.uid());
+end $$;
+revoke execute on function public.pedir_lembrete_teste() from public, anon;
+grant execute on function public.pedir_lembrete_teste() to authenticated;
 
 -- Horários (o pg_cron usa UTC; São Paulo = UTC−3, sem horário de verão)
 select cron.schedule('lembrete-chegada-manha', '45 10 * * 1-6', $$select public.disparar_lembrete('chegada')$$);  -- 07:45
