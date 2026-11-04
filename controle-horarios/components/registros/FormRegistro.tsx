@@ -51,6 +51,11 @@ export function FormRegistro({ registro, veiculos, acao, permitirData, horasTrav
         <CampoHora rotulo="Saída" name="hora_saida" defaultValue={v("hora_saida", hora(registro.hora_saida))} erro={e.hora_saida} ajuda="Vazio = ainda trabalhando" />
       </div>
       )}
+      {!horasTravadas && (
+        <Campo rotulo="Intervalo (minutos)" name="minutos_intervalo" type="number" inputMode="numeric" min={0} max={1440}
+          defaultValue={v("minutos_intervalo", String(registro.minutos_intervalo ?? 0))} erro={e.minutos_intervalo}
+          ajuda={registro.intervalo_inicio ? `Em intervalo desde ${hora(registro.intervalo_inicio)}. Ao preencher a saída, o intervalo termina nela.` : "Descontado das horas trabalhadas."} />
+      )}
       <Campo rotulo="Cliente" name="cliente" defaultValue={v("cliente", registro.cliente)} erro={e.cliente} obrigatorio maxLength={200} />
       <AreaTexto rotulo="Serviço realizado" name="servico" defaultValue={v("servico", registro.servico ?? "")} erro={e.servico} ajuda="Obrigatório quando houver saída." maxLength={2000} />
       <AreaTexto rotulo="Observações" name="observacoes" defaultValue={v("observacoes", registro.observacoes ?? "")} erro={e.observacoes} rows={4} maxLength={5000} />

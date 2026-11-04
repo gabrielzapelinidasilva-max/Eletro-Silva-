@@ -27,6 +27,8 @@ export function ItemRegistro({ registro, colaborador, acoes }: { registro: Regis
         <p className="flex items-center gap-1.5 text-sm tabular-nums text-slate-600">
           <Clock className="size-4 text-slate-400" aria-hidden />
           {formatarHora(registro.hora_chegada)} – {formatarHora(registro.hora_saida)}
+          {registro.intervalo_inicio ? <span className="text-amber-700">· em intervalo</span>
+            : registro.minutos_intervalo ? <span className="text-slate-500">· intervalo {formatarMinutos(registro.minutos_intervalo)}</span> : null}
         </p>
         {acoes && <div className="flex gap-2">{acoes}</div>}
       </div>

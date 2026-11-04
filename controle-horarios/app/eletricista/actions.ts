@@ -75,6 +75,19 @@ export async function registrarSaida(_a: Resultado, form: FormData): Promise<Res
   return sucesso(`Saída registrada às ${dados.hora_saida}. Bom descanso!`);
 }
 
+/** Começa ou termina o intervalo (a hora é sempre a do momento; o banco também garante). */
+export async function alternarIntervalo(_a: Resultado, form: FormData): Promise<Resultado> {
+  const { supabase, registro, erro } = await buscarMeuRegistroDeHoje(String(form.get("id") ?? ""));
+  if (!registro) return falha(erro!);
+  if (registro.hora_saida) return falha("Este atendimento já foi encerrado.");
+  const comecar = !registro.intervalo_inicio;
+  const agora = horaAgoraSP();
+  const { error } = await supabase.from("registros").update({ intervalo_inicio: comecar ? agora : null }).eq("id", registro.id);
+  if (error) return falha(mensagemErroBanco(error));
+  revalidatePath("/eletricista");
+  return sucesso(comecar ? `Intervalo iniciado às ${agora}. O cronômetro está pausado.` : `Intervalo encerrado às ${agora}. Bom trabalho!`);
+}
+
 export async function editarMeuRegistro(_a: Resultado, form: FormData): Promise<Resultado> {
   const { supabase, registro, erro } = await buscarMeuRegistroDeHoje(String(form.get("id") ?? ""));
   if (!registro) return falha(erro!, form);

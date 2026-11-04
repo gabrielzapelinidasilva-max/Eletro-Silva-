@@ -77,8 +77,9 @@ export default async function Resumo() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-semibold tabular-nums text-slate-900">desde {formatarHora(r.hora_chegada)}</p>
-                      {!esquecido && minutosEntre(formatarHora(r.hora_chegada), agora) >= 0 && (
-                        <Selo cor="verde">há {formatarMinutos(minutosEntre(formatarHora(r.hora_chegada), agora))}</Selo>
+                      {!esquecido && r.intervalo_inicio && <Selo cor="ambar">em intervalo desde {formatarHora(r.intervalo_inicio)}</Selo>}
+                      {!esquecido && !r.intervalo_inicio && minutosEntre(formatarHora(r.hora_chegada), agora) >= 0 && (
+                        <Selo cor="verde">há {formatarMinutos(Math.max(0, minutosEntre(formatarHora(r.hora_chegada), agora) - (r.minutos_intervalo ?? 0)))}</Selo>
                       )}
                     </div>
                   </li>

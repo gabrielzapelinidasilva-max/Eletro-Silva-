@@ -9,12 +9,21 @@ import { cadastrarClienteSeNovo } from "@/lib/clientes-servidor";
 import { formatarData } from "@/lib/datas";
 import type { Resultado } from "@/lib/tipos";
 
+/** Minutos de intervalo digitados pelo administrador (vazio = 0). */
+function lerIntervalo(form: FormData, erros: Record<string, string>) {
+  const bruto = String(form.get("minutos_intervalo") ?? "").trim();
+  const n = bruto ? Number(bruto) : 0;
+  if (!Number.isInteger(n) || n < 0 || n > 1440) erros.minutos_intervalo = "Informe os minutos de intervalo (ex.: 60).";
+  return Number.isInteger(n) ? Math.min(Math.max(n, 0), 1440) : 0;
+}
+
 export async function adminEditarRegistro(_a: Resultado, form: FormData): Promise<Resultado> {
   await exigirAdmin();
   const id = String(form.get("id") ?? "");
   const dados = lerRegistro(form);
   const gastos = lerGastosRegistro(form, { incluirValores: true });
-  const erros = { ...validarRegistro(dados), ...gastos.erros };
+  const erros: Record<string, string> = { ...validarRegistro(dados), ...gastos.erros };
+  const minutos_intervalo = lerIntervalo(form, erros);
   if (Object.keys(erros).length) return falhaValidacao(erros, form);
 
   const supabase = await criarClienteServidor();
@@ -27,6 +36,7 @@ export async function adminEditarRegistro(_a: Resultado, form: FormData): Promis
       cliente: dados.cliente,
       servico: dados.servico,
       observacoes: dados.observacoes,
+      minutos_intervalo,
       ...gastos.dados,
     })
     .eq("id", id)
@@ -57,6 +67,7 @@ export async function adminCriarRegistro(_a: Resultado, form: FormData): Promise
   const gastos = lerGastosRegistro(form, { incluirValores: true });
   const erros: Record<string, string> = { ...validarRegistro(dados, { exigirSaida: true }), ...gastos.erros };
   if (!/^[0-9a-f-]{36}$/i.test(usuario)) erros.usuario_id = "Escolha o colaborador.";
+  const minutos_intervalo = lerIntervalo(form, erros);
   if (Object.keys(erros).length) return falhaValidacao(erros, form);
 
   const supabase = await criarClienteServidor();
@@ -68,6 +79,7 @@ export async function adminCriarRegistro(_a: Resultado, form: FormData): Promise
     cliente: dados.cliente,
     servico: dados.servico,
     observacoes: dados.observacoes,
+    minutos_intervalo,
     ...gastos.dados,
   });
   if (error) return falha(mensagemErroBanco(error), form);

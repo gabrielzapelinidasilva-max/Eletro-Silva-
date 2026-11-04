@@ -45,6 +45,7 @@ function FormNota({ colaboradores, veiculos, clientes, hoje, aoConcluir }: Props
         <CampoHora rotulo="Chegada" name="hora_chegada" defaultValue={v("hora_chegada")} erro={e.hora_chegada} obrigatorio />
         <CampoHora rotulo="Saída" name="hora_saida" defaultValue={v("hora_saida")} erro={e.hora_saida} obrigatorio />
       </div>
+      <Campo rotulo="Intervalo (minutos)" name="minutos_intervalo" type="number" inputMode="numeric" min={0} max={1440} defaultValue={v("minutos_intervalo", "0")} erro={e.minutos_intervalo} ajuda="Ex.: 60 para 1 hora de almoço. É descontado das horas." />
       <CampoCliente clientes={clientes} valorInicial={v("cliente")} erro={e.cliente} />
       <AreaTexto rotulo="Serviço realizado" name="servico" defaultValue={v("servico")} erro={e.servico} obrigatorio maxLength={2000} />
       <AreaTexto rotulo="Observações (opcional)" name="observacoes" defaultValue={v("observacoes")} rows={3} maxLength={5000} />

@@ -123,6 +123,7 @@ function Detalhes({ registro: r, veiculos, aoEditar }: { registro: RegistroComPe
         {linha("Data", formatarData(r.data))}
         {linha("Chegada", formatarHora(r.hora_chegada))}
         {linha("Saída", r.hora_saida ? formatarHora(r.hora_saida) : "Em andamento")}
+        {linha("Intervalo", r.intervalo_inicio ? `em intervalo desde ${formatarHora(r.intervalo_inicio)}` : r.minutos_intervalo ? formatarMinutos(r.minutos_intervalo) : "—")}
         {linha("Horas", formatarMinutos(r.minutos_trabalhados))}
         {linha("Cliente", r.cliente)}
         {linha("Serviço", r.servico || "—")}

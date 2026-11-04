@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { Camera, ChevronDown, LogIn, LogOut, MapPin, Clock } from "lucide-react";
-import { registrarChegada, registrarSaida } from "./actions";
+import { useActionState, useEffect, useState } from "react";
+import { Camera, ChevronDown, Coffee, LogIn, LogOut, MapPin, Clock, Play } from "lucide-react";
+import { alternarIntervalo, registrarChegada, registrarSaida } from "./actions";
 import { HoraAutomatica } from "@/components/registros/CampoHora";
 import { CamposGastosRegistro } from "@/components/registros/CamposGastosRegistro";
 import { FotosServico } from "@/components/registros/FotosServico";
@@ -12,7 +12,8 @@ import { Campo, AreaTexto } from "@/components/ui/Campo";
 import { BotaoEnviar } from "@/components/ui/Botao";
 import { Cartao } from "@/components/ui/Cartao";
 import { useToastDoResultado } from "@/components/ui/Toast";
-import { formatarData, formatarHora } from "@/lib/datas";
+import { formatarData, formatarHora, horaAgoraSP } from "@/lib/datas";
+import { formatarMinutos } from "@/lib/horas";
 import { RESULTADO_INICIAL, type Registro, type Resultado, type VeiculoOpcao } from "@/lib/tipos";
 
 /** Cartão principal: "Registrar chegada" ou, se já chegou, "Registrar saída". */
@@ -78,20 +79,13 @@ function FormSaida({ registro, horaAgora, estado, enviar, veiculos, usuarioId }:
   const enviando = Object.values(envios).some(Boolean);
   const marcarEnvio = (parte: string) => (sim: boolean) => setEnvios((x) => ({ ...x, [parte]: sim }));
 
+  const emIntervalo = !!registro.intervalo_inicio;
+
   return (
-    <Cartao className="ring-2 ring-emerald-300">
-      <form action={enviar} className="space-y-4" noValidate>
+    <Cartao className={`ring-2 ${emIntervalo ? "ring-amber-300" : "ring-emerald-300"}`}>
+      <BlocoIntervalo registro={registro} />
+      <form action={enviar} className="mt-4 space-y-4" noValidate>
         <input type="hidden" name="id" value={registro.id} />
-        <div className="flex items-start gap-3 rounded-xl bg-emerald-50 p-4 text-emerald-900">
-          <span className="relative mt-1.5 flex size-3 shrink-0">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex size-3 rounded-full bg-emerald-500" />
-          </span>
-          <div>
-            <p className="font-bold">Trabalhando desde {formatarHora(registro.hora_chegada)}</p>
-            <p className="text-sm">Cliente: {registro.cliente}</p>
-          </div>
-        </div>
         <HoraAutomatica rotulo="Hora de saída" horaInicial={horaAgora} />
         <Campo rotulo="Cliente" name="cliente" defaultValue={estado.valores?.cliente ?? registro.cliente} erro={e.cliente} obrigatorio maxLength={200} />
         <AreaTexto rotulo="Serviço realizado" name="servico" defaultValue={estado.valores?.servico} placeholder="Ex.: Troca de disjuntor e revisão do quadro" erro={e.servico} obrigatorio maxLength={2000} />
@@ -119,5 +113,64 @@ function FormSaida({ registro, horaAgora, estado, enviar, veiculos, usuarioId }:
         <CompartilharLocalizacao usuarioId={usuarioId} registroId={registro.id} />
       </form>
     </Cartao>
+  );
+}
+
+/** Minutos entre duas horas "HH:MM[:SS]" do mesmo dia. */
+function minutosEntreHoras(de: string, ate: string) {
+  const m = (h: string) => Number(h.slice(0, 2)) * 60 + Number(h.slice(3, 5));
+  return Math.max(0, m(ate) - m(de));
+}
+
+/**
+ * Situação do atendimento com o cronômetro (horas trabalhadas, sem os intervalos)
+ * e o botão de intervalo: pausa o cronômetro e depois volta.
+ */
+function BlocoIntervalo({ registro }: { registro: Registro }) {
+  const [estado, enviar] = useActionState(alternarIntervalo, RESULTADO_INICIAL);
+  useToastDoResultado(estado);
+  const [agora, setAgora] = useState(() => horaAgoraSP());
+  useEffect(() => {
+    const t = setInterval(() => setAgora(horaAgoraSP()), 15_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const emIntervalo = !!registro.intervalo_inicio;
+  const fimDaConta = emIntervalo ? registro.intervalo_inicio! : agora;
+  const trabalhados = Math.max(0, minutosEntreHoras(registro.hora_chegada, fimDaConta) - (registro.minutos_intervalo ?? 0));
+  const pausa = (registro.minutos_intervalo ?? 0) + (emIntervalo ? minutosEntreHoras(registro.intervalo_inicio!, agora) : 0);
+
+  return (
+    <div className={`rounded-xl p-4 ${emIntervalo ? "bg-amber-50 text-amber-900" : "bg-emerald-50 text-emerald-900"}`}>
+      <div className="flex items-start gap-3">
+        <span className="relative mt-1.5 flex size-3 shrink-0">
+          {!emIntervalo && <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />}
+          <span className={`relative inline-flex size-3 rounded-full ${emIntervalo ? "bg-amber-500" : "bg-emerald-500"}`} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="font-bold">
+            {emIntervalo ? `Em intervalo desde ${formatarHora(registro.intervalo_inicio)}` : `Trabalhando desde ${formatarHora(registro.hora_chegada)}`}
+          </p>
+          <p className="text-sm">Cliente: {registro.cliente}</p>
+        </div>
+        <div className="text-right" aria-live="polite">
+          <p className="text-2xl font-extrabold tabular-nums">{formatarMinutos(trabalhados)}</p>
+          <p className="text-xs">{emIntervalo ? "pausado" : "trabalhadas"}</p>
+        </div>
+      </div>
+      {pausa > 0 && <p className="mt-2 text-xs">Intervalo{emIntervalo ? "" : "s"} hoje neste atendimento: {formatarMinutos(pausa)}</p>}
+      <form action={enviar} className="mt-3">
+        <input type="hidden" name="id" value={registro.id} />
+        {emIntervalo ? (
+          <BotaoEnviar tamanho="lg" className="w-full" textoCarregando="Voltando...">
+            <Play className="size-5" aria-hidden /> Voltar do intervalo
+          </BotaoEnviar>
+        ) : (
+          <BotaoEnviar variante="secundario" tamanho="lg" className="w-full" textoCarregando="Pausando...">
+            <Coffee className="size-5" aria-hidden /> Intervalo (pausar)
+          </BotaoEnviar>
+        )}
+      </form>
+    </div>
   );
 }

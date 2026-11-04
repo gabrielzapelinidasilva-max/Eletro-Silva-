@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   const supabase = await criarClienteServidor();
   const registros = await buscarRegistros(supabase, filtros);
 
-  const cabecalho = ["Data", "Colaborador", "Chegada", "Saída", "Horas (h:mm)", "Horas (decimal)", "Cliente", "Serviço", "Observações", "Km rodados", "Material (R$)", "Valor cobrado (R$)"];
+  const cabecalho = ["Data", "Colaborador", "Chegada", "Saída", "Intervalo (min)", "Horas (h:mm)", "Horas (decimal)", "Cliente", "Serviço", "Observações", "Km rodados", "Material (R$)", "Valor cobrado (R$)"];
   const dinheiro = (n: number | null) => (n == null ? "" : Number(n).toFixed(2).replace(".", ","));
   const linhas = registros
     .slice()
@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
         r.profiles?.nome,
         formatarHora(r.hora_chegada),
         r.hora_saida ? formatarHora(r.hora_saida) : "",
+        r.minutos_intervalo ? String(r.minutos_intervalo) : "",
         r.minutos_trabalhados == null ? "" : formatarMinutos(r.minutos_trabalhados).replace("h", ":"),
         minutosEmHorasDecimais(r.minutos_trabalhados),
         r.cliente,

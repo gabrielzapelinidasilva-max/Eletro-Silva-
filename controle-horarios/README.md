@@ -16,6 +16,8 @@ Aplicativo web para os **eletricistas** registrarem chegada, saída e o serviço
 - "Olá, [nome]" e a data de hoje.
 - **Registrar chegada**: a data e a hora são as do momento em que ele toca no botão (**não dá para mudar a hora**). Informa o cliente.
 - **Registrar saída**: a hora também é a do momento (**não dá para mudar**). Informa o serviço realizado (obrigatório), observações (opcional) e o **carro usado e os km rodados**. Ao salvar, o serviço entra **sozinho** na aba Gastos do administrador, já com a mão de obra e a gasolina calculadas. O eletricista **não vê nem informa valores** (material e valor cobrado): isso é só do administrador.
+- **Intervalo**: com o atendimento aberto, o botão **Intervalo (pausar)** pausa o cronômetro (almoço, café...) e **Voltar do intervalo** continua. O tempo de intervalo é descontado das horas e da mão de obra. Se registrar a saída durante o intervalo, ele termina junto. A hora é sempre a do momento.
+- **Lembretes no celular**: ao tocar em **Ativar lembretes**, o celular recebe notificações às **07:45 e 13:45** (seg. a sáb.: "Já registrou a chegada?", só para quem ainda não está em atendimento) e às **11:50 e 17:45** ("Não esqueça de registrar a saída", só para quem está com atendimento aberto). No Android funciona direto no navegador; no iPhone é preciso **Adicionar à Tela de Início** e abrir o app por lá. Quem agenda é o banco (pg_cron); o site envia (Web Push). Na Vercel ficam `VAPID_PRIVATE_KEY` e `LEMBRETES_SEGREDO`; no banco, a tabela `lembretes_config` guarda o endereço do site e a mesma senha.
 - **Meus registros**: histórico do mais recente para o mais antigo. Nos registros **de hoje** ele pode corrigir cliente, serviço, observações e carro/km, mas **nunca os horários**: só o administrador altera horas (o banco garante isso, mesmo que alguém tente "por fora").
 - Na saída, a parte **Fotos e assinatura do cliente (opcional)**: fotos do **antes** e do **depois** (até 6 de cada, tiradas na hora ou da galeria) e a **assinatura do cliente** com o dedo na tela, mais o nome de quem assinou.
 - **Minha agenda**: todos os serviços que o administrador agendou para ele (data, horário, cliente, endereço, telefone, serviço e observações), **na mesma hora** em que o admin agenda ou altera, sem recarregar a página (aparece um aviso e o selo "Novo" ou "Alterado"). É só leitura: o eletricista não consegue mudar nada (o banco garante). Tem botões para ver o endereço no mapa, ligar para o cliente e **Iniciar** (já preenche o cliente na chegada).
@@ -184,7 +186,7 @@ controle-horarios/
 ├── lib/                    Supabase, datas/fuso, cálculo de horas, validações, consultas
 ├── middleware.ts           protege as rotas conforme a função do usuário
 ├── supabase/
-│   ├── migrations/         0001 a 0017 (rodar na ordem)
+│   ├── migrations/         0001 a 0019 (rodar na ordem)
 │   ├── instalar-tudo.sql   todas as migrations juntas (colar no SQL Editor)
 │   └── criar-admin.sql     promove um usuário a administrador
 └── scripts/criar-admin.mjs cria o primeiro administrador pelo terminal

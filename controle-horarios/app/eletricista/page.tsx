@@ -3,6 +3,7 @@ import { PainelPonto } from "./PainelPonto";
 import { MeusRegistros } from "./MeusRegistros";
 import { MinhaAgenda } from "./MinhaAgenda";
 import { AgendaAoVivo } from "./AgendaAoVivo";
+import { Lembretes } from "@/components/Lembretes";
 import type { Agendamento } from "@/lib/agenda";
 import { Indicador, TituloSecao } from "@/components/ui/Cartao";
 import { exigirEletricista } from "@/lib/auth";
@@ -48,6 +49,7 @@ export default async function PaginaEletricista({ searchParams }: { searchParams
 
       <PainelPonto aberto={(aberto as Registro | null) ?? null} hoje={hoje} horaAgora={horaAgoraSP()} veiculos={veiculos} usuarioId={perfil.id} clienteSugerido={clienteSugerido} />
 
+      <Lembretes />
       <AgendaAoVivo usuarioId={perfil.id} itens={(agenda ?? []) as Agendamento[]} />
       <MinhaAgenda itens={(agenda ?? []) as Agendamento[]} hoje={hoje} podeIniciar={!aberto} />
 

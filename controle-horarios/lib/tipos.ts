@@ -22,6 +22,9 @@ export type Registro = {
   servico: string | null;
   observacoes: string | null;
   minutos_trabalhados: number | null;
+  /** Intervalo em andamento (hora em que começou) e minutos de intervalo já feitos. */
+  intervalo_inicio?: string | null;
+  minutos_intervalo?: number;
   // Dados para a aba Gastos (preenchidos pelo eletricista ao registrar a saída)
   veiculo_id: string | null;
   km_rodados: number;
