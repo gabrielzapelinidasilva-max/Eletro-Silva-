@@ -5,7 +5,7 @@ import { TabelaRegistros } from "./TabelaRegistros";
 import { NovaNota } from "./NovaNota";
 import type { Cliente } from "@/lib/clientes";
 import { Cartao, Indicador, TituloSecao } from "@/components/ui/Cartao";
-import { exigirAdmin } from "@/lib/auth";
+import { exigirGestorAgenda } from "@/lib/auth";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { buscarRegistros, lerFiltros, totaisPorColaborador } from "@/lib/consultas";
 import { formatarData, hojeSP } from "@/lib/datas";
@@ -17,7 +17,9 @@ export const metadata: Metadata = { title: "Registros" };
 const MOSTRAR_NA_TELA = 300;
 
 export default async function PaginaRegistros({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  await exigirAdmin();
+  // O encarregado também vê (só para acompanhar: sem editar, excluir, nota avulsa nem valores)
+  const perfil = await exigirGestorAgenda();
+  const somenteLeitura = perfil.funcao !== "admin";
   const filtros = lerFiltros(await searchParams);
   const supabase = await criarClienteServidor();
 
@@ -39,7 +41,7 @@ export default async function PaginaRegistros({ searchParams }: { searchParams: 
             Período de {formatarData(filtros.de)} a {formatarData(filtros.ate)}.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        {!somenteLeitura && <div className="flex flex-wrap gap-2">
           <LinkLixeira />
           <NovaNota
             colaboradores={(pessoas ?? []).filter((x) => x.ativo)}
@@ -47,10 +49,10 @@ export default async function PaginaRegistros({ searchParams }: { searchParams: 
             clientes={(clientes ?? []) as Cliente[]}
             hoje={hojeSP()}
           />
-        </div>
+        </div>}
       </div>
 
-      <Filtros filtros={filtros} colaboradores={(pessoas ?? []) as Pick<Perfil, "id" | "nome" | "ativo">[]} />
+      <Filtros podeExportar={!somenteLeitura} filtros={filtros} colaboradores={(pessoas ?? []) as Pick<Perfil, "id" | "nome" | "ativo">[]} />
 
       <section aria-label="Totais do período" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Indicador rotulo="Total de horas" valor={formatarMinutos(somarMinutos(registros))} destaque />
@@ -86,7 +88,7 @@ export default async function PaginaRegistros({ searchParams }: { searchParams: 
             Mostrando os {MOSTRAR_NA_TELA} mais recentes de {registros.length}. Os totais consideram todos. Use os filtros ou exporte para ver tudo.
           </p>
         )}
-        <TabelaRegistros registros={registros.slice(0, MOSTRAR_NA_TELA)} veiculos={veiculos} />
+        <TabelaRegistros registros={registros.slice(0, MOSTRAR_NA_TELA)} veiculos={veiculos} somenteLeitura={somenteLeitura} />
       </section>
     </div>
   );

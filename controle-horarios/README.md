@@ -25,7 +25,7 @@ Aplicativo web para os **eletricistas** registrarem chegada, saída e o serviço
 - Total de horas de hoje, da semana (a partir de segunda-feira) e do mês.
 
 **Encarregado**
-- É um eletricista (mesma tela: chegada, saída, meus registros, minha agenda) que **também vê e mexe na Agenda** (calendário, serviços em andamento e clientes ao agendar). Não vê Resumo, Registros, Histórico, Gastos, Clientes nem Colaboradores. O administrador escolhe a função "Encarregado" em **Colaboradores → Editar**.
+- É um eletricista (mesma tela: chegada, saída, meus registros, minha agenda) que **também vê e mexe na Agenda** (calendário, serviços em andamento e clientes ao agendar) e **acompanha o Resumo e os Registros** da equipe (só para ver: sem editar, excluir, nota avulsa, exportar nem valores em dinheiro). Não vê Histórico, Gastos, Clientes nem Colaboradores. O administrador escolhe a função "Encarregado" em **Colaboradores → Editar**.
 
 **Administrador** (sete abas)
 - **Resumo**: quem está trabalhando agora (com a **localização** de cada um: há quanto tempo foi atualizada, "Abrir no mapa" e "Ver aqui"), horas da equipe no dia, na semana e no mês, e os últimos registros.
@@ -186,7 +186,7 @@ controle-horarios/
 ├── lib/                    Supabase, datas/fuso, cálculo de horas, validações, consultas
 ├── middleware.ts           protege as rotas conforme a função do usuário
 ├── supabase/
-│   ├── migrations/         0001 a 0019 (rodar na ordem)
+│   ├── migrations/         0001 a 0020 (rodar na ordem)
 │   ├── instalar-tudo.sql   todas as migrations juntas (colar no SQL Editor)
 │   └── criar-admin.sql     promove um usuário a administrador
 └── scripts/criar-admin.mjs cria o primeiro administrador pelo terminal

@@ -17,7 +17,8 @@ import { formatarMoeda, formatarNumero } from "@/lib/gastos";
 
 type Janela = { tipo: "detalhes" | "editar" | "excluir"; registro: RegistroComPerfil } | null;
 
-export function TabelaRegistros({ registros, veiculos }: { registros: RegistroComPerfil[]; veiculos: VeiculoOpcao[] }) {
+/** somenteLeitura: encarregado acompanhando (sem editar/excluir e sem valores em dinheiro). */
+export function TabelaRegistros({ registros, veiculos, somenteLeitura = false }: { registros: RegistroComPerfil[]; veiculos: VeiculoOpcao[]; somenteLeitura?: boolean }) {
   const [janela, setJanela] = useState<Janela>(null);
   const fechar = () => setJanela(null);
   const [estadoExclusao, excluir] = useActionState(adminExcluirRegistro, RESULTADO_INICIAL);
@@ -28,12 +29,14 @@ export function TabelaRegistros({ registros, veiculos }: { registros: RegistroCo
       <Botao variante="fantasma" className={compacto ? "px-2.5" : ""} onClick={() => setJanela({ tipo: "detalhes", registro: r })} aria-label="Ver detalhes" title="Ver detalhes">
         <Eye className="size-5" aria-hidden />
       </Botao>
+      {!somenteLeitura && <>
       <Botao variante="fantasma" className={compacto ? "px-2.5" : ""} onClick={() => setJanela({ tipo: "editar", registro: r })} aria-label="Editar" title="Editar">
         <Pencil className="size-5" aria-hidden />
       </Botao>
       <Botao variante="perigoSuave" className={compacto ? "px-2.5" : ""} onClick={() => setJanela({ tipo: "excluir", registro: r })} aria-label="Excluir" title="Excluir">
         <Trash2 className="size-5" aria-hidden />
       </Botao>
+      </>}
     </>
   );
 
@@ -81,7 +84,7 @@ export function TabelaRegistros({ registros, veiculos }: { registros: RegistroCo
       </div>
 
       <Modal aberto={janela?.tipo === "detalhes"} aoFechar={fechar} titulo="Detalhes do registro">
-        {janela?.tipo === "detalhes" && <Detalhes veiculos={veiculos} registro={janela.registro} aoEditar={() => setJanela({ tipo: "editar", registro: janela.registro })} />}
+        {janela?.tipo === "detalhes" && <Detalhes veiculos={veiculos} registro={janela.registro} somenteLeitura={somenteLeitura} aoEditar={() => setJanela({ tipo: "editar", registro: janela.registro })} />}
       </Modal>
 
       <Modal aberto={janela?.tipo === "editar"} aoFechar={fechar} titulo={`Editar registro${janela?.registro.profiles?.nome ? ` – ${janela.registro.profiles.nome}` : ""}`}>
@@ -109,7 +112,7 @@ export function TabelaRegistros({ registros, veiculos }: { registros: RegistroCo
   );
 }
 
-function Detalhes({ registro: r, veiculos, aoEditar }: { registro: RegistroComPerfil; veiculos: VeiculoOpcao[]; aoEditar: () => void }) {
+function Detalhes({ registro: r, veiculos, somenteLeitura, aoEditar }: { registro: RegistroComPerfil; veiculos: VeiculoOpcao[]; somenteLeitura: boolean; aoEditar: () => void }) {
   const linha = (rotulo: string, valor: React.ReactNode) => (
     <div className="grid grid-cols-3 gap-3 py-2.5">
       <dt className="text-sm font-semibold text-slate-500">{rotulo}</dt>
@@ -129,17 +132,19 @@ function Detalhes({ registro: r, veiculos, aoEditar }: { registro: RegistroComPe
         {linha("Serviço", r.servico || "—")}
         {linha("Observações", r.observacoes || "—")}
         {linha("Carro", r.veiculo_id ? `${veiculos.find((c) => c.id === r.veiculo_id)?.nome ?? "—"} · ${formatarNumero(Number(r.km_rodados), 1)} km` : "—")}
-        {linha("Material", formatarMoeda(Number(r.valor_material)))}
-        {linha("Valor cobrado", r.valor_servico == null ? "Não informado" : formatarMoeda(Number(r.valor_servico)))}
+        {!somenteLeitura && linha("Material", formatarMoeda(Number(r.valor_material)))}
+        {!somenteLeitura && linha("Valor cobrado", r.valor_servico == null ? "Não informado" : formatarMoeda(Number(r.valor_servico)))}
         {linha("Criado em", formatarDataHora(r.criado_em))}
         {linha("Atualizado em", formatarDataHora(r.atualizado_em))}
       </dl>
+      {!somenteLeitura && <>
       <Anexos registro={r} />
       <div className="flex justify-end">
         <Botao variante="secundario" onClick={aoEditar}>
           <Pencil className="size-4" aria-hidden /> Editar
         </Botao>
       </div>
+      </>}
     </div>
   );
 }

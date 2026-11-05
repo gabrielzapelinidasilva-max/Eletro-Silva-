@@ -3,7 +3,7 @@ import { AdminNav } from "@/components/AdminNav";
 import { exigirGestorAgenda } from "@/lib/auth";
 
 export default async function LayoutAdmin({ children }: { children: React.ReactNode }) {
-  // Cada página confere de novo: só a Agenda aceita o encarregado.
+  // Cada página confere de novo: o encarregado só entra no Resumo, nos Registros e na Agenda.
   const perfil = await exigirGestorAgenda();
   return (
     <>

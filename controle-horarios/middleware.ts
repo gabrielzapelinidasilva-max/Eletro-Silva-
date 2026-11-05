@@ -5,7 +5,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigurado } from "@/lib/supa
 /**
  * Renova a sessão do Supabase a cada requisição e protege as áreas:
  * - /eletricista e /admin exigem login;
- * - /admin exige função "admin" (o encarregado só entra em /admin/agenda);
+ * - /admin exige função "admin" (o encarregado entra no Resumo, nos Registros e na Agenda);
  *   o RLS no banco protege os dados de novo.
  */
 export async function middleware(request: NextRequest) {
@@ -45,9 +45,9 @@ export async function middleware(request: NextRequest) {
     await supabase.auth.signOut();
     return redirecionar("/login?erro=inativo");
   }
-  // O encarregado (eletricista) também entra na Agenda do administrador.
-  const agenda = caminho === "/admin/agenda" || caminho.startsWith("/admin/agenda/");
-  if (caminho.startsWith("/admin") && perfil.funcao !== "admin" && !(agenda && perfil.encarregado)) return redirecionar("/eletricista");
+  // O encarregado (eletricista) também entra no Resumo, nos Registros (só ver) e na Agenda.
+  const liberadoEncarregado = caminho === "/admin" || caminho === "/admin/registros" || caminho === "/admin/agenda" || caminho.startsWith("/admin/agenda/");
+  if (caminho.startsWith("/admin") && perfil.funcao !== "admin" && !(liberadoEncarregado && perfil.encarregado)) return redirecionar("/eletricista");
   if (caminho.startsWith("/eletricista") && perfil.funcao !== "eletricista") return redirecionar("/admin");
 
   return resposta;

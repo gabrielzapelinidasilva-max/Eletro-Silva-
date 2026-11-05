@@ -15,9 +15,11 @@ const ABAS = [
   { href: "/admin/colaboradores", rotulo: "Colaboradores", curto: "Equipe", icone: Users },
 ];
 
-/** Encarregado: a área dele (eletricista) e a Agenda. */
+/** Encarregado: a área dele (eletricista), Resumo e Registros (só ver) e a Agenda. */
 const ABAS_ENCARREGADO = [
   { href: "/eletricista", rotulo: "Meus horários", curto: "Horários", icone: Clock },
+  { href: "/admin", rotulo: "Resumo", curto: "Resumo", icone: LayoutDashboard },
+  { href: "/admin/registros", rotulo: "Registros", curto: "Registros", icone: ClipboardList },
   { href: "/admin/agenda", rotulo: "Agenda", curto: "Agenda", icone: CalendarDays },
 ];
 

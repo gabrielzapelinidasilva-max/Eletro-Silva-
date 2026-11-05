@@ -7,7 +7,7 @@ import { filtrosParaURL, type Filtros as TFiltros } from "@/lib/consultas";
 import type { Perfil } from "@/lib/tipos";
 
 /** Filtros enviados pela URL (GET): funcionam sem JavaScript e podem ser salvos nos favoritos. */
-export function Filtros({ filtros, colaboradores }: { filtros: TFiltros; colaboradores: Pick<Perfil, "id" | "nome" | "ativo">[] }) {
+export function Filtros({ filtros, colaboradores, podeExportar = true }: { filtros: TFiltros; colaboradores: Pick<Perfil, "id" | "nome" | "ativo">[]; podeExportar?: boolean }) {
   return (
     <form method="get" className="grid gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:grid-cols-2 lg:grid-cols-6 lg:items-end">
       <div className="sm:col-span-2 lg:col-span-6">
@@ -47,9 +47,11 @@ export function Filtros({ filtros, colaboradores }: { filtros: TFiltros; colabor
         <Link href="/admin/registros" className={classesBotao("fantasma", "md")}>
           <X className="size-4" aria-hidden /> Limpar <IndicadorLink />
         </Link>
-        <a href={`/admin/registros/exportar?${filtrosParaURL(filtros)}`} className={classesBotao("secundario", "md", "sm:ml-auto")} download>
-          <Download className="size-4" aria-hidden /> Exportar CSV/Excel
-        </a>
+        {podeExportar && (
+          <a href={`/admin/registros/exportar?${filtrosParaURL(filtros)}`} className={classesBotao("secundario", "md", "sm:ml-auto")} download>
+            <Download className="size-4" aria-hidden /> Exportar CSV/Excel
+          </a>
+        )}
       </div>
     </form>
   );

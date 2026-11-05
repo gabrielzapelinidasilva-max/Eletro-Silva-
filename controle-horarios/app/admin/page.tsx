@@ -5,7 +5,7 @@ import { Cartao, Indicador, TituloSecao } from "@/components/ui/Cartao";
 import { EstadoVazio, Selo } from "@/components/ui/Estados";
 import { ItemRegistro } from "@/components/registros/ItemRegistro";
 import { LocalizacaoColaborador } from "@/components/LocalizacaoColaborador";
-import { exigirAdmin } from "@/lib/auth";
+import { exigirGestorAgenda } from "@/lib/auth";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { buscarRegistros } from "@/lib/consultas";
 import { formatarData, formatarDataHora, formatarHora, hojeSP, horaAgoraSP, inicioMes, inicioSemana } from "@/lib/datas";
@@ -15,7 +15,8 @@ import type { RegistroComPerfil } from "@/lib/tipos";
 export const metadata: Metadata = { title: "Resumo" };
 
 export default async function Resumo() {
-  await exigirAdmin();
+  // Administrador e encarregado (para acompanhar)
+  await exigirGestorAgenda();
   const supabase = await criarClienteServidor();
   const hoje = hojeSP();
   const semana = inicioSemana(hoje);
