@@ -92,15 +92,25 @@ export async function editarMeuRegistro(_a: Resultado, form: FormData): Promise<
   const { supabase, registro, erro } = await buscarMeuRegistroDeHoje(String(form.get("id") ?? ""));
   if (!registro) return falha(erro!, form);
 
-  // As horas ficam como foram registradas; só o administrador altera.
-  const dados = { ...lerRegistro(form), data: registro.data, hora_chegada: registro.hora_chegada.slice(0, 5), hora_saida: registro.hora_saida?.slice(0, 5) ?? null };
+  // Eletricista: as horas ficam como foram registradas (só o administrador altera).
+  // Encarregado: pode corrigir as próprias horas e o intervalo (o banco também libera só para ele).
+  const perfil = await exigirEletricista();
+  const lido = lerRegistro(form);
+  const dados = perfil.encarregado
+    ? { ...lido, data: registro.data }
+    : { ...lido, data: registro.data, hora_chegada: registro.hora_chegada.slice(0, 5), hora_saida: registro.hora_saida?.slice(0, 5) ?? null };
   const gastos = lerGastosRegistro(form);
-  const erros = { ...validarRegistro(dados), ...gastos.erros };
+  const erros: Record<string, string> = { ...validarRegistro(dados), ...gastos.erros };
+  const bruto = String(form.get("minutos_intervalo") ?? "").trim();
+  const minutosIntervalo = bruto ? Number(bruto) : registro.minutos_intervalo ?? 0;
+  if (perfil.encarregado && (!Number.isInteger(minutosIntervalo) || minutosIntervalo < 0 || minutosIntervalo > 1440)) erros.minutos_intervalo = "Informe os minutos de intervalo (ex.: 60).";
   if (Object.keys(erros).length) return falhaValidacao(erros, form);
+  const horas = perfil.encarregado ? { hora_chegada: dados.hora_chegada, hora_saida: dados.hora_saida, minutos_intervalo: minutosIntervalo } : {};
 
   const { error } = await supabase
     .from("registros")
     .update({
+      ...horas,
       cliente: dados.cliente,
       servico: dados.servico,
       observacoes: dados.observacoes,

@@ -62,7 +62,7 @@ export default async function PaginaEletricista({ searchParams }: { searchParams
 
       <section>
         <TituloSecao>Meus registros</TituloSecao>
-        <MeusRegistros veiculos={veiculos} registros={registros.slice(0, limite)} hoje={hoje} temMais={registros.length > limite} proximoLimite={limite + 30} />
+        <MeusRegistros podeEditarHoras={!!perfil.encarregado} veiculos={veiculos} registros={registros.slice(0, limite)} hoje={hoje} temMais={registros.length > limite} proximoLimite={limite + 30} />
       </section>
     </div>
   );

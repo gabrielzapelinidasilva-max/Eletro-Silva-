@@ -13,7 +13,7 @@ import { IndicadorLink } from "@/components/ui/IndicadorLink";
 import { EstadoVazio } from "@/components/ui/Estados";
 import type { Registro, VeiculoOpcao } from "@/lib/tipos";
 
-export function MeusRegistros({ registros, hoje, temMais, proximoLimite, veiculos }: { registros: Registro[]; hoje: string; temMais: boolean; proximoLimite: number; veiculos: VeiculoOpcao[] }) {
+export function MeusRegistros({ registros, hoje, temMais, proximoLimite, veiculos, podeEditarHoras = false }: { registros: Registro[]; hoje: string; temMais: boolean; proximoLimite: number; veiculos: VeiculoOpcao[]; /** Encarregado corrige as próprias horas. */ podeEditarHoras?: boolean }) {
   const [editando, setEditando] = useState<Registro | null>(null);
 
   if (registros.length === 0) {
@@ -49,7 +49,7 @@ export function MeusRegistros({ registros, hoje, temMais, proximoLimite, veiculo
         </div>
       )}
       <Modal aberto={!!editando} aoFechar={() => setEditando(null)} titulo="Editar registro de hoje">
-        {editando && <FormRegistro key={editando.id} registro={editando} veiculos={veiculos} acao={editarMeuRegistro} horasTravadas aoConcluir={() => setEditando(null)} />}
+        {editando && <FormRegistro key={editando.id} registro={editando} veiculos={veiculos} acao={editarMeuRegistro} horasTravadas={!podeEditarHoras} aoConcluir={() => setEditando(null)} />}
       </Modal>
     </>
   );
