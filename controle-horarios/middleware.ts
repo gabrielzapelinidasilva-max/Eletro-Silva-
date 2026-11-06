@@ -48,7 +48,7 @@ export async function middleware(request: NextRequest) {
   // O encarregado (eletricista) também entra no Resumo, nos Registros (só ver) e na Agenda.
   const liberadoEncarregado = caminho === "/admin" || caminho === "/admin/registros" || caminho === "/admin/agenda" || caminho.startsWith("/admin/agenda/");
   if (caminho.startsWith("/admin") && perfil.funcao !== "admin" && !(liberadoEncarregado && perfil.encarregado)) return redirecionar("/eletricista");
-  if (caminho.startsWith("/eletricista") && perfil.funcao !== "eletricista") return redirecionar("/admin");
+  // /eletricista ("Meus horários") é de todos: eletricista, encarregado e administrador.
 
   return resposta;
 }

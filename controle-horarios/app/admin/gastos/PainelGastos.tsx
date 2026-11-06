@@ -109,7 +109,7 @@ function CartaoLancamento({ lancamento: l, aoEditar, aoExcluir }: { lancamento: 
   const positivo = c.lucro >= 0;
   const semValor = Boolean(l.registro_id) && !l.valor_servico_informado;
   return (
-    <li className={`flex flex-col rounded-2xl bg-white p-4 shadow-sm ring-1 ${semValor ? "ring-amber-300" : "ring-slate-200"}`}>
+    <li className={`flex min-w-0 flex-col rounded-2xl bg-white p-4 shadow-sm ring-1 ${semValor ? "ring-amber-300" : "ring-slate-200"}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate font-bold text-slate-900">{l.cliente}</p>

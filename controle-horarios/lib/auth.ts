@@ -47,8 +47,12 @@ export function rotuloFuncao(perfil: Pick<Perfil, "funcao" | "encarregado">): st
   return perfil.funcao === "admin" ? "Administrador" : perfil.encarregado ? "Encarregado" : "Eletricista";
 }
 
-export async function exigirEletricista(): Promise<Perfil> {
-  const perfil = await exigirLogin();
-  if (perfil.funcao !== "eletricista") redirect("/admin");
-  return perfil;
+/** "Meus horários": eletricistas, encarregados e também o administrador registram as próprias horas. */
+export async function exigirAreaPessoal(): Promise<Perfil> {
+  return exigirLogin();
+}
+
+/** Quem escolhe/corrige as próprias horas (os eletricistas usam sempre a hora do momento). */
+export function podeAjustarHoras(perfil: Perfil): boolean {
+  return perfil.funcao === "admin" || (perfil.funcao === "eletricista" && !!perfil.encarregado);
 }

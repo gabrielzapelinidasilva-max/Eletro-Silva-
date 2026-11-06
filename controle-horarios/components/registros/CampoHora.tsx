@@ -36,6 +36,36 @@ export function CampoHora({ onChange, ...props }: PropsHora) {
 }
 
 /**
+ * Campo de hora que começa com a hora atual e continua acompanhando o relógio
+ * até a pessoa mexer nele (encarregado e administrador podem ajustar).
+ */
+export function CampoHoraAtual({ nome, rotulo, horaInicial, erro }: { nome: string; rotulo: string; horaInicial: string; erro?: string }) {
+  const [valor, setValor] = useState(horaInicial);
+  const [ajustado, setAjustado] = useState(false);
+
+  useEffect(() => {
+    if (ajustado) return;
+    setValor(horaAgoraSP());
+    const t = setInterval(() => setValor(horaAgoraSP()), 15_000);
+    return () => clearInterval(t);
+  }, [ajustado]);
+
+  return (
+    <div>
+      <CampoHora rotulo={rotulo} name={nome} value={valor} onChange={(v) => { setValor(v); setAjustado(true); }} erro={erro} obrigatorio
+        className="text-center text-2xl font-bold tabular-nums" />
+      <p className="mt-1 text-xs text-slate-500">
+        {ajustado ? (
+          <button type="button" className="font-semibold text-marca-600 underline" onClick={() => setAjustado(false)}>Voltar para a hora atual</button>
+        ) : (
+          "Hora atual preenchida automaticamente. Toque para ajustar (formato 24h)."
+        )}
+      </p>
+    </div>
+  );
+}
+
+/**
  * Hora atual (do relógio de São Paulo), só para mostrar. O eletricista não altera:
  * o servidor e o banco gravam a hora do momento em que ele toca no botão.
  */

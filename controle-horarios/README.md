@@ -25,9 +25,10 @@ Aplicativo web para os **eletricistas** registrarem chegada, saída e o serviço
 - Total de horas de hoje, da semana (a partir de segunda-feira) e do mês.
 
 **Encarregado**
-- É um eletricista (mesma tela: chegada, saída, meus registros, minha agenda) que **também vê e mexe na Agenda** (calendário, serviços em andamento e clientes ao agendar) e **acompanha o Resumo e os Registros** da equipe (só para ver: sem editar, excluir, nota avulsa, exportar nem valores em dinheiro). Em **Meus horários** ele pode **corrigir as próprias horas** (chegada, saída e intervalo) dos registros de hoje; os outros eletricistas não. Não vê Histórico, Gastos, Clientes nem Colaboradores. O administrador escolhe a função "Encarregado" em **Colaboradores → Editar**.
+- É um eletricista (mesma tela: chegada, saída, meus registros, minha agenda) que **também vê e mexe na Agenda** (calendário, serviços em andamento e clientes ao agendar) e **acompanha o Resumo e os Registros** da equipe (só para ver: sem editar, excluir, nota avulsa, exportar nem valores em dinheiro). Em **Meus horários** ele **escolhe a hora** ao registrar a chegada e a saída e pode **corrigir as próprias horas** (chegada, saída e intervalo) dos registros de hoje; os outros eletricistas não. Não vê Histórico, Gastos, Clientes nem Colaboradores. O administrador escolhe a função "Encarregado" em **Colaboradores → Editar**.
 
-**Administrador** (sete abas)
+**Administrador** (oito abas; no celular as abas rolam para o lado)
+- **Meus horários**: a mesma tela do eletricista, para o administrador registrar as próprias horas (podendo escolher a hora) e receber lembretes.
 - **Resumo**: quem está trabalhando agora (com a **localização** de cada um: há quanto tempo foi atualizada, "Abrir no mapa" e "Ver aqui"), horas da equipe no dia, na semana e no mês, e os últimos registros.
 - **Registros**: botão **Nota avulsa** para lançar um serviço que não foi registrado pelo celular (colaborador, data, horários, cliente, serviço, carro/km, material e valor cobrado); entra nos Registros, no Histórico e em Gastos. Todos os registros, com filtros (colaborador, período, cliente), busca por texto, detalhes, edição, exclusão (pede confirmação), total de horas por colaborador e botão **Exportar CSV/Excel**.
 - **Histórico**: a base com **todos os trabalhos já feitos**, desde o primeiro registro, organizados por mês e dia, com o serviço e as observações completos. Tem busca, filtro por colaborador, cliente e período, exportação, e a visão **Por cliente** (quantas vezes cada cliente foi atendido, total de horas, primeira e última visita e quem atendeu; toque no cliente para ver todos os trabalhos dele). Em Por cliente, o botão com a **flechinha** em "Tempo sem serviço" ordena por quem está há **mais** ou **menos** tempo sem serviço, e os filtros "+30 / +60 / +90 / +180 / +365 dias" mostram só os clientes parados há mais tempo.
@@ -186,7 +187,7 @@ controle-horarios/
 ├── lib/                    Supabase, datas/fuso, cálculo de horas, validações, consultas
 ├── middleware.ts           protege as rotas conforme a função do usuário
 ├── supabase/
-│   ├── migrations/         0001 a 0021 (rodar na ordem)
+│   ├── migrations/         0001 a 0022 (rodar na ordem)
 │   ├── instalar-tudo.sql   todas as migrations juntas (colar no SQL Editor)
 │   └── criar-admin.sql     promove um usuário a administrador
 └── scripts/criar-admin.mjs cria o primeiro administrador pelo terminal

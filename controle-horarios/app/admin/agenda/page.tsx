@@ -70,8 +70,8 @@ function Titulo({ texto }: { texto: string }) {
 function AbasAgenda({ aba }: { aba: "calendario" | "andamento" }) {
   const item = (alvo: typeof aba, href: string, icone: React.ReactNode, rotulo: string) => (
     <Link href={href} aria-current={aba === alvo ? "page" : undefined}
-      className={classesBotao(aba === alvo ? "primario" : "secundario", "md", "flex-1 sm:flex-none")}>
-      {icone} {rotulo} <IndicadorLink />
+      className={classesBotao(aba === alvo ? "primario" : "secundario", "md", "min-w-0 flex-1 px-3 sm:flex-none sm:px-4")}>
+      {icone} <span className="truncate">{rotulo}</span> <IndicadorLink />
     </Link>
   );
   return (

@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { Camera, ChevronDown, Coffee, LogIn, LogOut, MapPin, Clock, Play } from "lucide-react";
 import { alternarIntervalo, registrarChegada, registrarSaida } from "./actions";
-import { HoraAutomatica } from "@/components/registros/CampoHora";
+import { CampoHoraAtual, HoraAutomatica } from "@/components/registros/CampoHora";
 import { CamposGastosRegistro } from "@/components/registros/CamposGastosRegistro";
 import { FotosServico } from "@/components/registros/FotosServico";
 import { AssinaturaCliente } from "@/components/registros/AssinaturaCliente";
@@ -17,7 +17,7 @@ import { formatarMinutos } from "@/lib/horas";
 import { RESULTADO_INICIAL, type Registro, type Resultado, type VeiculoOpcao } from "@/lib/tipos";
 
 /** Cartão principal: "Registrar chegada" ou, se já chegou, "Registrar saída". */
-export function PainelPonto({ aberto, hoje, horaAgora, veiculos, usuarioId, clienteSugerido = "" }: { aberto: Registro | null; hoje: string; horaAgora: string; veiculos: VeiculoOpcao[]; usuarioId: string; clienteSugerido?: string }) {
+export function PainelPonto({ aberto, hoje, horaAgora, veiculos, usuarioId, clienteSugerido = "", ajustarHoras = false }: { aberto: Registro | null; hoje: string; horaAgora: string; veiculos: VeiculoOpcao[]; usuarioId: string; clienteSugerido?: string; /** Encarregado/admin escolhem a hora. */ ajustarHoras?: boolean }) {
   // Os estados ficam aqui (e não nos formulários) porque, ao salvar, um formulário
   // troca pelo outro; assim o aviso de sucesso não se perde.
   const [estadoChegada, enviarChegada] = useActionState(registrarChegada, RESULTADO_INICIAL);
@@ -38,15 +38,15 @@ export function PainelPonto({ aberto, hoje, horaAgora, veiculos, usuarioId, clie
     );
   }
   return aberto ? (
-    <FormSaida key={aberto.id} registro={aberto} horaAgora={horaAgora} estado={estadoSaida} enviar={enviarSaida} veiculos={veiculos} usuarioId={usuarioId} />
+    <FormSaida key={aberto.id} ajustarHoras={ajustarHoras} registro={aberto} horaAgora={horaAgora} estado={estadoSaida} enviar={enviarSaida} veiculos={veiculos} usuarioId={usuarioId} />
   ) : (
-    <FormChegada key={clienteSugerido} horaAgora={horaAgora} hoje={hoje} estado={estadoChegada} enviar={enviarChegada} clienteSugerido={clienteSugerido} />
+    <FormChegada key={clienteSugerido} ajustarHoras={ajustarHoras} horaAgora={horaAgora} hoje={hoje} estado={estadoChegada} enviar={enviarChegada} clienteSugerido={clienteSugerido} />
   );
 }
 
-type PropsForm = { horaAgora: string; estado: Resultado; enviar: (form: FormData) => void };
+type PropsForm = { horaAgora: string; estado: Resultado; enviar: (form: FormData) => void; ajustarHoras: boolean };
 
-function FormChegada({ horaAgora, hoje, estado, enviar, clienteSugerido }: PropsForm & { hoje: string; clienteSugerido: string }) {
+function FormChegada({ horaAgora, hoje, estado, enviar, clienteSugerido, ajustarHoras }: PropsForm & { hoje: string; clienteSugerido: string }) {
   const e = estado.erros ?? {};
 
   return (
@@ -59,7 +59,9 @@ function FormChegada({ horaAgora, hoje, estado, enviar, clienteSugerido }: Props
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Campo rotulo="Data" value={formatarData(hoje)} readOnly disabled />
-          <HoraAutomatica rotulo="Hora de chegada" horaInicial={horaAgora} />
+          {ajustarHoras
+            ? <CampoHoraAtual nome="hora_chegada" rotulo="Hora de chegada" horaInicial={horaAgora} erro={e.hora_chegada} />
+            : <HoraAutomatica rotulo="Hora de chegada" horaInicial={horaAgora} />}
         </div>
         <Campo rotulo="Cliente" name="cliente" placeholder="Nome do cliente ou local" defaultValue={estado.valores?.cliente ?? clienteSugerido} erro={e.cliente} obrigatorio maxLength={200} autoComplete="off" />
         <BotaoEnviar tamanho="xl" className="w-full" textoCarregando="Registrando...">
@@ -72,7 +74,7 @@ function FormChegada({ horaAgora, hoje, estado, enviar, clienteSugerido }: Props
   );
 }
 
-function FormSaida({ registro, horaAgora, estado, enviar, veiculos, usuarioId }: PropsForm & { registro: Registro; veiculos: VeiculoOpcao[]; usuarioId: string }) {
+function FormSaida({ registro, horaAgora, estado, enviar, veiculos, usuarioId, ajustarHoras }: PropsForm & { registro: Registro; veiculos: VeiculoOpcao[]; usuarioId: string }) {
   const e = estado.erros ?? {};
   // Fotos/assinatura sendo enviadas: não deixa registrar a saída antes de terminar.
   const [envios, setEnvios] = useState<Record<string, boolean>>({});
@@ -86,7 +88,9 @@ function FormSaida({ registro, horaAgora, estado, enviar, veiculos, usuarioId }:
       <BlocoIntervalo registro={registro} />
       <form action={enviar} className="mt-4 space-y-4" noValidate>
         <input type="hidden" name="id" value={registro.id} />
-        <HoraAutomatica rotulo="Hora de saída" horaInicial={horaAgora} />
+        {ajustarHoras
+          ? <CampoHoraAtual nome="hora_saida" rotulo="Hora de saída" horaInicial={horaAgora} erro={e.hora_saida} />
+          : <HoraAutomatica rotulo="Hora de saída" horaInicial={horaAgora} />}
         <Campo rotulo="Cliente" name="cliente" defaultValue={estado.valores?.cliente ?? registro.cliente} erro={e.cliente} obrigatorio maxLength={200} />
         <AreaTexto rotulo="Serviço realizado" name="servico" defaultValue={estado.valores?.servico} placeholder="Ex.: Troca de disjuntor e revisão do quadro" erro={e.servico} obrigatorio maxLength={2000} />
         <AreaTexto rotulo="Observações (opcional)" name="observacoes" defaultValue={estado.valores?.observacoes} placeholder="Materiais usados, pendências, recados..." erro={e.observacoes} rows={4} maxLength={5000} />

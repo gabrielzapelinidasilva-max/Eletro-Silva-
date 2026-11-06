@@ -1,11 +1,13 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CalendarDays, Clock, Contact, LayoutDashboard, ClipboardList, History, Users, Wallet } from "lucide-react";
 import { IndicadorLink } from "@/components/ui/IndicadorLink";
 
 const ABAS = [
+  { href: "/eletricista", rotulo: "Meus horários", curto: "Horários", icone: Clock },
   { href: "/admin", rotulo: "Resumo", curto: "Resumo", icone: LayoutDashboard },
   { href: "/admin/registros", rotulo: "Registros", curto: "Registros", icone: ClipboardList },
   { href: "/admin/historico", rotulo: "Histórico", curto: "Histórico", icone: History },
@@ -26,13 +28,18 @@ const ABAS_ENCARREGADO = [
 export function AdminNav({ modo = "admin" }: { modo?: "admin" | "encarregado" }) {
   const caminho = usePathname();
   const abas = modo === "admin" ? ABAS : ABAS_ENCARREGADO;
+  // No celular as abas rolam para o lado: deixa a aba aberta sempre à vista.
+  const lista = useRef<HTMLUListElement>(null);
+  useEffect(() => {
+    lista.current?.querySelector('[aria-current="page"]')?.scrollIntoView({ block: "nearest", inline: "center" });
+  }, [caminho]);
   return (
     <nav aria-label="Seções do administrador" className="mx-auto max-w-6xl px-2 sm:px-4">
-      <ul className="flex gap-1">
+      <ul ref={lista} className="flex gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {abas.map(({ href, rotulo, curto, icone: Icone }) => {
           const ativa = href === "/admin" ? caminho === "/admin" : caminho.startsWith(href);
           return (
-            <li key={href} className="min-w-0 flex-1 lg:flex-none">
+            <li key={href} className={`${abas.length > 6 ? "min-w-[4.25rem]" : "min-w-0"} flex-1 shrink-0 lg:min-w-0 lg:flex-none`}>
               <Link
                 href={href}
                 aria-current={ativa ? "page" : undefined}

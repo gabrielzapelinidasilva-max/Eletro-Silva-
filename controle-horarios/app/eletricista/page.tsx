@@ -6,7 +6,7 @@ import { AgendaAoVivo } from "./AgendaAoVivo";
 import { Lembretes } from "@/components/Lembretes";
 import type { Agendamento } from "@/lib/agenda";
 import { Indicador, TituloSecao } from "@/components/ui/Cartao";
-import { exigirEletricista } from "@/lib/auth";
+import { exigirAreaPessoal, podeAjustarHoras } from "@/lib/auth";
 import { criarClienteServidor } from "@/lib/supabase/server";
 import { dataPorExtenso, hojeSP, horaAgoraSP, inicioMes, inicioSemana } from "@/lib/datas";
 import { formatarMinutos, somarMinutos } from "@/lib/horas";
@@ -15,7 +15,7 @@ import type { Registro, VeiculoOpcao } from "@/lib/tipos";
 export const metadata: Metadata = { title: "Meus horários" };
 
 export default async function PaginaEletricista({ searchParams }: { searchParams: Promise<{ limite?: string; cliente?: string }> }) {
-  const perfil = await exigirEletricista();
+  const perfil = await exigirAreaPessoal();
   const supabase = await criarClienteServidor();
   const hoje = hojeSP();
   const semana = inicioSemana(hoje);
@@ -48,7 +48,7 @@ export default async function PaginaEletricista({ searchParams }: { searchParams
         <p className="mt-0.5 text-slate-500">{dataPorExtenso(hoje)}</p>
       </div>
 
-      <PainelPonto aberto={(aberto as Registro | null) ?? null} hoje={hoje} horaAgora={horaAgoraSP()} veiculos={veiculos} usuarioId={perfil.id} clienteSugerido={clienteSugerido} />
+      <PainelPonto ajustarHoras={podeAjustarHoras(perfil)} aberto={(aberto as Registro | null) ?? null} hoje={hoje} horaAgora={horaAgoraSP()} veiculos={veiculos} usuarioId={perfil.id} clienteSugerido={clienteSugerido} />
 
       <Lembretes chavePublica={chavePublica} />
       <AgendaAoVivo usuarioId={perfil.id} itens={(agenda ?? []) as Agendamento[]} />
@@ -62,7 +62,7 @@ export default async function PaginaEletricista({ searchParams }: { searchParams
 
       <section>
         <TituloSecao>Meus registros</TituloSecao>
-        <MeusRegistros podeEditarHoras={!!perfil.encarregado} veiculos={veiculos} registros={registros.slice(0, limite)} hoje={hoje} temMais={registros.length > limite} proximoLimite={limite + 30} />
+        <MeusRegistros podeEditarHoras={podeAjustarHoras(perfil)} veiculos={veiculos} registros={registros.slice(0, limite)} hoje={hoje} temMais={registros.length > limite} proximoLimite={limite + 30} />
       </section>
     </div>
   );
