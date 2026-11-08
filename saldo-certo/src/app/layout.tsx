@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: { default: "Saldo Certo", template: "%s · Saldo Certo" },
   description: "Saldo Certo — Seu dinheiro no lugar certo. Controle financeiro pessoal.",
   applicationName: "Saldo Certo",
+  // iPhone: abre em tela cheia quando adicionado à Tela de Início.
+  appleWebApp: { capable: true, title: "Saldo Certo", statusBarStyle: "default" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
