@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/env";
 
-const PUBLIC_PATHS = ["/login", "/cadastro", "/esqueci-senha", "/auth"];
+const PUBLIC_PATHS = ["/login", "/cadastro", "/esqueci-senha", "/auth", "/api/mercado-diagnostico"];
 const AUTH_PAGES = ["/login", "/cadastro", "/esqueci-senha"];
 
 function startsWithAny(pathname: string, paths: string[]) {
@@ -44,6 +44,10 @@ export async function updateSession(request: NextRequest) {
   };
 
   if (!isLoggedIn && !startsWithAny(pathname, PUBLIC_PATHS)) {
+    // APIs respondem 401 em JSON em vez de redirecionar para a tela de login.
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Entre na sua conta." }, { status: 401 });
+    }
     return redirectTo("/login");
   }
   if (isLoggedIn && (pathname === "/" || startsWithAny(pathname, AUTH_PAGES))) {
