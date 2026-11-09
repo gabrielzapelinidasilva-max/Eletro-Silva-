@@ -11,9 +11,9 @@ export const metadata: Metadata = {
   authors: [{ name: "Evom" }],
   creator: "Evom",
   publisher: "Evom",
-  applicationName: "Saldo Certo",
+  applicationName: "Saldo Certo by Evom",
   // iPhone: abre em tela cheia quando adicionado à Tela de Início.
-  appleWebApp: { capable: true, title: "Saldo Certo", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "Saldo Certo by Evom", statusBarStyle: "default" },
   formatDetection: { telephone: false },
 };
 

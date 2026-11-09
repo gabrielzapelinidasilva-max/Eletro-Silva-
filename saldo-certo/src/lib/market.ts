@@ -5,34 +5,14 @@ import "server-only";
  * Só roda no servidor. Todos os preços são devolvidos em R$.
  */
 
-export type MarketKind = "Ações" | "FIIs" | "Cripto";
-export const MARKET_TYPES: readonly MarketKind[] = ["Ações", "FIIs", "Cripto"];
+import { type MarketKind, type Quote } from "@/lib/market-shared";
 
-export type Quote = {
-  ticker: string;
-  symbol: string;
-  name: string;
-  /** Moeda original do ativo (os preços abaixo já estão em R$). */
-  currency: string;
-  price: number;
-  /** Variação dos últimos 12 meses, em fração (0,15 = +15%). */
-  change12m: number | null;
-  /** Ritmo mensal equivalente aos últimos 12 meses, em fração. */
-  monthlyAvg: number | null;
-  /** Data/hora da cotação (ISO). */
-  asOf: string;
-};
+export { MARKET_TYPES, normalizeTicker, type MarketKind, type Quote } from "@/lib/market-shared";
 
-const TICKER_RE = /^[A-Z0-9][A-Z0-9.\-]{0,19}$/;
-
-export function normalizeTicker(raw: string) {
-  const t = raw.trim().toUpperCase();
-  return TICKER_RE.test(t) ? t : null;
-}
-
-/** Converte o código digitado no símbolo do Yahoo (PETR4 → PETR4.SA, BTC → BTC-BRL). */
+/** Converte o código digitado no símbolo do Yahoo (PETR4 → PETR4.SA, BTC → BTC-USD). */
 export function toSymbol(ticker: string, kind: MarketKind) {
-  if (kind === "Cripto") return ticker.includes("-") ? ticker : `${ticker}-BRL`;
+  // Cripto em dólar (o par em reais quase não existe no Yahoo); o valor é convertido para R$.
+  if (kind === "Cripto") return ticker.includes("-") ? ticker : `${ticker}-USD`;
   if (ticker.endsWith(".SA")) return ticker;
   // B3: 4 letras + 1 ou 2 dígitos (PETR4, ITUB4, MXRF11, BOVA11), com F opcional do fracionário.
   const b3 = ticker.match(/^([A-Z]{4}\d{1,2})F?$/);

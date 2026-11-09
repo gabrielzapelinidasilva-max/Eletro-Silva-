@@ -27,7 +27,7 @@ export function LogoMark({ className }: { className?: string }) {
 /** Assinatura da marca-mãe: "by Evom". */
 export function ByEvom({ className }: { className?: string }) {
   return (
-    <span className={cn("text-[0.7em] font-semibold tracking-normal whitespace-nowrap opacity-70", className)}>
+    <span className={cn("text-[0.75em] font-semibold tracking-normal whitespace-nowrap opacity-85", className)}>
       by <span className="font-extrabold tracking-tight">Evom</span>
     </span>
   );

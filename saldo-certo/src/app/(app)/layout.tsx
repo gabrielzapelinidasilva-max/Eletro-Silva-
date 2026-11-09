@@ -40,7 +40,7 @@ function Shell({ children }: { children: React.ReactNode }) {
               <LogoMark className="size-8 [&_circle]:fill-white" />
               <div className="leading-tight">
                 <p className="font-extrabold tracking-tight">
-                  Saldo Certo <ByEvom />
+                  Saldo Certo <ByEvom className="rounded-md bg-black/10 px-1.5 py-0.5 opacity-100" />
                 </p>
                 <p className="hidden text-[11px] font-medium opacity-80 sm:block">Seu dinheiro no lugar certo</p>
               </div>

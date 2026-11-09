@@ -28,7 +28,11 @@ export function YieldSimulator({ defaults, showMonthly = true }: { defaults?: Si
   const id = useId();
   const [initial, setInitial] = useState(defaults?.initial ? toBRLInput(defaults.initial) : "1.000,00");
   const [monthly, setMonthly] = useState(defaults?.monthly ? toBRLInput(defaults.monthly) : "");
-  const [rate, setRate] = useState(defaults?.ratePercent ? String(defaults.ratePercent).replace(".", ",") : "1");
+  const [rate, setRate] = useState(
+    defaults?.ratePercent !== undefined
+      ? defaults.ratePercent.toLocaleString("pt-BR", { maximumFractionDigits: 2, useGrouping: false })
+      : "1",
+  );
   const [period, setPeriod] = useState<RatePeriod>(defaults?.period ?? "mensal");
   const startMonths = defaults?.months ?? 12;
   const [termValue, setTermValue] = useState(
@@ -36,9 +40,11 @@ export function YieldSimulator({ defaults, showMonthly = true }: { defaults?: Si
   );
   const [termUnit, setTermUnit] = useState<"meses" | "anos">(startMonths % 12 === 0 && startMonths >= 12 ? "anos" : "meses");
 
-  const ratePercent = num(rate);
+  // A taxa pode ser negativa (ativo que caiu), mas não abaixo de −100%.
+  const parsedRate = parseBRL(rate);
+  const ratePercent = Number.isFinite(parsedRate) && parsedRate > -100 ? parsedRate : NaN;
   const months = Math.min(600, Math.round(num(termValue) * (termUnit === "anos" ? 12 : 1)));
-  const valid = ratePercent > 0 && months > 0 && (num(initial) > 0 || num(monthly) > 0);
+  const valid = Number.isFinite(ratePercent) && months > 0 && (num(initial) > 0 || num(monthly) > 0);
   const series = valid
     ? projectSeries({ initial: num(initial), monthly: showMonthly ? num(monthly) : 0, ratePercent, period, months })
     : [];
@@ -99,7 +105,11 @@ export function YieldSimulator({ defaults, showMonthly = true }: { defaults?: Si
           <div className="grid gap-2 rounded-2xl bg-invest/8 p-4 sm:grid-cols-3">
             <Result label="Valor final" value={formatBRL(last.total)} strong />
             <Result label="Total investido" value={formatBRL(last.invested)} />
-            <Result label="Rendimento (juros)" value={`+ ${formatBRL(last.interest)}`} tone="text-income" />
+            <Result
+              label={last.interest >= 0 ? "Rendimento (juros)" : "Perda"}
+              value={`${last.interest >= 0 ? "+" : "−"} ${formatBRL(Math.abs(last.interest))}`}
+              tone={last.interest >= 0 ? "text-income" : "text-expense"}
+            />
           </div>
           <p className="-mt-2 text-xs text-muted-foreground">
             {formatRate(ratePercent)} {RATE_PERIOD_LABEL[period]} por {formatTerm(months)}, com juros compostos. Valores

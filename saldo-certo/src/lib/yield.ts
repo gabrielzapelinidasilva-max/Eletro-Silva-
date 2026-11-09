@@ -82,6 +82,13 @@ export function formatTerm(months: number) {
   return parts.join(" e ") || "0 meses";
 }
 
+/** Fração → "+12,3%" / "−4,5%" */
+export function formatPct(fraction: number) {
+  const pct = fraction * 100;
+  const txt = Math.abs(pct).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+  return `${pct >= 0 ? "+" : "−"}${txt}%`;
+}
+
 /** 1.5 → "1,5%" */
 export function formatRate(ratePercent: number) {
   return `${ratePercent.toLocaleString("pt-BR", { maximumFractionDigits: 4 })}%`;
