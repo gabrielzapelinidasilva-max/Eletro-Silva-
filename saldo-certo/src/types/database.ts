@@ -133,6 +133,9 @@ export type Database = {
           description: string
           id: string
           operation: string
+          rate: number | null
+          rate_period: string | null
+          term_months: number | null
           type: string
           user_id: string
         }
@@ -143,6 +146,9 @@ export type Database = {
           description: string
           id?: string
           operation: string
+          rate?: number | null
+          rate_period?: string | null
+          term_months?: number | null
           type: string
           user_id?: string
         }
@@ -153,6 +159,9 @@ export type Database = {
           description?: string
           id?: string
           operation?: string
+          rate?: number | null
+          rate_period?: string | null
+          term_months?: number | null
           type?: string
           user_id?: string
         }

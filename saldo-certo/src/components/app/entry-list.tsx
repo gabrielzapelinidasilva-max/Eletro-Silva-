@@ -15,6 +15,10 @@ export type ListItem = {
   badge?: React.ReactNode;
   /** "+" para entradas, "-" para saídas. */
   sign?: "+" | "-";
+  /** Linha extra abaixo da data (ex.: projeção do rendimento). */
+  details?: React.ReactNode;
+  /** Botões extras antes de editar/excluir. */
+  actions?: React.ReactNode;
 };
 
 export function EntryList({
@@ -41,12 +45,14 @@ export function EntryList({
             <p className="text-xs text-muted-foreground">
               {formatDate(it.date)} · {it.category}
             </p>
+            {it.details}
           </div>
           <p className={cn("text-right font-semibold whitespace-nowrap tabular-nums", toneText)}>
             {it.sign === "-" ? "− " : it.sign === "+" ? "+ " : ""}
             {formatBRL(it.amount)}
           </p>
           <div className="flex">
+            {it.actions}
             <Button variant="ghost" size="icon" className="size-8 text-muted-foreground" aria-label={`Editar ${it.description}`} onClick={() => onEdit(it.id)}>
               <PencilIcon />
             </Button>

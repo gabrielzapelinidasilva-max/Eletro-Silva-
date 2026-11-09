@@ -1,6 +1,6 @@
-# Saldo Certo
+# Saldo Certo by Evom
 
-**Seu dinheiro no lugar certo.** App web de controle financeiro pessoal: ganhos, gastos, gastos fixos
+**Seu dinheiro no lugar certo.** Um produto **Evom**. App web de controle financeiro pessoal: ganhos, gastos, gastos fixos
 recorrentes, investimentos e um resumo mensal com o saldo final.
 
 - **Stack:** Next.js 16 (App Router) + TypeScript · Tailwind CSS 4 + shadcn/ui + lucide-react · Recharts ·
@@ -17,7 +17,7 @@ recorrentes, investimentos e um resumo mensal com o saldo final.
 | `/ganhos` | Entradas do mês (Salário, Freelance, Vendas, Outros), total e gráfico por categoria |
 | `/gastos` | Gastos do mês, total e gráfico de pizza. Os lançados pelos gastos fixos aparecem com a etiqueta **Fixo** |
 | `/gastos-fixos` | Contas recorrentes, próxima cobrança, total mensal comprometido e botão de pausar/reativar |
-| `/investimentos` | Aportes e resgates, total do mês, saldo acumulado e carteira por tipo |
+| `/investimentos` | Aportes e resgates, total do mês, saldo acumulado, carteira por tipo, projeção de rendimento e simulador |
 | `/resumo` | Totais do mês, **saldo final** (verde/vermelho), gráfico dos últimos 12 meses e histórico |
 
 O **seletor de mês** no topo filtra todas as abas. No celular as abas viram uma barra de navegação inferior.
@@ -100,6 +100,22 @@ Para conferir o agendamento no SQL Editor do Supabase:
 select jobname, schedule, active from cron.job;
 select * from cron.job_run_details order by start_time desc limit 10;
 ```
+
+## Rendimento dos investimentos
+
+Ao cadastrar um **aporte**, dá para ligar "Calcular quanto vai render" e informar a **taxa de juros**
+(ao mês ou ao ano) e o **prazo** (meses ou anos). Esses dados ficam nas colunas `rate`, `rate_period`
+e `term_months` de `investments`. São opcionais, só valem para aportes e são obrigatórios em conjunto
+(regra no banco). Com eles o app mostra:
+
+- em cada aporte: o valor no fim do prazo, a data, e quanto ele vale **hoje** (estimado);
+- o card **Rendimento estimado até hoje**, que soma os juros de todos os aportes com taxa;
+- um gráfico de projeção mês a mês (botão de gráfico no aporte);
+- o **Simulador de rendimento**, para testar qualquer valor, aporte mensal, taxa e prazo sem salvar nada.
+
+O cálculo usa juros compostos. Uma taxa anual é convertida para a mensal equivalente,
+`(1 + taxa)^(1/12) − 1`. Os valores são **brutos**: não descontam imposto de renda, IOF nem taxas.
+A lógica fica em [`src/lib/yield.ts`](src/lib/yield.ts).
 
 ## Deploy (Vercel)
 

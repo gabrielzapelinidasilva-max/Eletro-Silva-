@@ -1,4 +1,4 @@
-import { Logo } from "@/components/logo";
+import { EvomFooter, Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -11,6 +11,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <Logo showSlogan />
       </div>
       <div className="w-full max-w-sm">{children}</div>
+      <EvomFooter className="mt-8" />
     </div>
   );
 }

@@ -6,8 +6,11 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "Saldo Certo", template: "%s · Saldo Certo" },
-  description: "Saldo Certo — Seu dinheiro no lugar certo. Controle financeiro pessoal.",
+  title: { default: "Saldo Certo by Evom", template: "%s · Saldo Certo by Evom" },
+  description: "Saldo Certo by Evom — Seu dinheiro no lugar certo. Controle financeiro pessoal.",
+  authors: [{ name: "Evom" }],
+  creator: "Evom",
+  publisher: "Evom",
   applicationName: "Saldo Certo",
   // iPhone: abre em tela cheia quando adicionado à Tela de Início.
   appleWebApp: { capable: true, title: "Saldo Certo", statusBarStyle: "default" },

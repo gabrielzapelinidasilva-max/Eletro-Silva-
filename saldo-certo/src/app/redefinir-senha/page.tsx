@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Logo } from "@/components/logo";
+import { EvomFooter, Logo } from "@/components/logo";
 import { ResetForm } from "./reset-form";
 
 export const metadata: Metadata = { title: "Nova senha" };
@@ -11,6 +11,7 @@ export default function ResetPage() {
       <div className="w-full max-w-sm">
         <ResetForm />
       </div>
+      <EvomFooter className="mt-8" />
     </div>
   );
 }

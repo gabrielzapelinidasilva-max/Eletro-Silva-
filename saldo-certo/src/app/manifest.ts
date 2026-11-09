@@ -4,9 +4,9 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "Saldo Certo",
+    name: "Saldo Certo by Evom",
     short_name: "Saldo Certo",
-    description: "Seu dinheiro no lugar certo. Controle financeiro pessoal.",
+    description: "Seu dinheiro no lugar certo. Controle financeiro pessoal. Um produto Evom.",
     lang: "pt-BR",
     start_url: "/ganhos",
     scope: "/",

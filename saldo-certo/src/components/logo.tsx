@@ -24,14 +24,34 @@ export function LogoMark({ className }: { className?: string }) {
   );
 }
 
+/** Assinatura da marca-mãe: "by Evom". */
+export function ByEvom({ className }: { className?: string }) {
+  return (
+    <span className={cn("text-[0.7em] font-semibold tracking-normal whitespace-nowrap opacity-70", className)}>
+      by <span className="font-extrabold tracking-tight">Evom</span>
+    </span>
+  );
+}
+
 export function Logo({ className, showSlogan = false }: { className?: string; showSlogan?: boolean }) {
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
       <LogoMark />
-      <div className="leading-tight">
-        <p className="text-lg font-extrabold tracking-tight">Saldo Certo</p>
+      <div className="text-left leading-tight">
+        <p className="text-lg font-extrabold tracking-tight">
+          Saldo Certo <ByEvom />
+        </p>
         {showSlogan && <p className="text-xs text-muted-foreground">Seu dinheiro no lugar certo</p>}
       </div>
     </div>
+  );
+}
+
+/** Rodapé: "Saldo Certo é um produto Evom". */
+export function EvomFooter({ className }: { className?: string }) {
+  return (
+    <p className={cn("text-center text-xs text-muted-foreground", className)}>
+      Saldo Certo é um produto <strong className="font-bold text-foreground/80">Evom</strong>
+    </p>
   );
 }
