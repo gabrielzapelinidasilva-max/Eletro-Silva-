@@ -103,19 +103,27 @@ select * from cron.job_run_details order by start_time desc limit 10;
 
 ## Rendimento dos investimentos
 
-Ao cadastrar um **aporte**, dá para ligar "Calcular quanto vai render" e informar a **taxa de juros**
-(ao mês ou ao ano) e o **prazo** (meses ou anos). Esses dados ficam nas colunas `rate`, `rate_period`
-e `term_months` de `investments`. São opcionais, só valem para aportes e são obrigatórios em conjunto
-(regra no banco). Com eles o app mostra:
+O formulário de **aporte** muda conforme o tipo:
 
-- em cada aporte: o valor no fim do prazo, a data, e quanto ele vale **hoje** (estimado);
-- o card **Rendimento estimado até hoje**, que soma os juros de todos os aportes com taxa;
-- um gráfico de projeção mês a mês (botão de gráfico no aporte);
-- o **Simulador de rendimento**, para testar qualquer valor, aporte mensal, taxa e prazo sem salvar nada.
+**Renda Fixa, Poupança e Outros: "Quanto rende".** Você informa o rendimento em % (ao mês ou ao
+ano) e o prazo. O app mostra quanto o aporte vira no fim do prazo e quanto vale hoje. Usa juros
+compostos; uma taxa anual é convertida para a mensal equivalente, `(1 + taxa)^(1/12) − 1`. Colunas:
+`rate`, `rate_period` e `term_months`.
 
-O cálculo usa juros compostos. Uma taxa anual é convertida para a mensal equivalente,
-`(1 + taxa)^(1/12) − 1`. Os valores são **brutos**: não descontam imposto de renda, IOF nem taxas.
-A lógica fica em [`src/lib/yield.ts`](src/lib/yield.ts).
+**Ações, FIIs e Cripto: "Cotação de mercado".** Você informa o código do ativo (PETR4, MXRF11, BTC,
+AAPL...). O servidor busca no Yahoo Finance a **cotação atual**, o **preço na data do aporte** e a
+**variação dos últimos 12 meses**. O app mostra quanto o aporte vale hoje
+(`valor × cotação atual ÷ preço na compra`) e, se você informar um prazo, projeta no mesmo ritmo dos
+últimos 12 meses. Colunas: `ticker` e `purchase_price` (preço na data, salvo no cadastro).
+- Ações e FIIs da B3 viram `CÓDIGO.SA`; ações de fora (AAPL) e cripto (BTC-USD) são convertidas
+  para R$ pelo câmbio do dia.
+- A busca passa pela rota `/api/mercado` (só para quem está logado) em `src/lib/market.ts`.
+
+Em todos os casos: o card **Rendimento até hoje** soma os juros estimados e a variação das cotações.
+O botão de gráfico em cada aporte abre a projeção, e o **Simulador de rendimento** testa qualquer
+cenário sem salvar. Os valores são **brutos** (sem IR, IOF nem taxas), e rentabilidade passada não
+garante rentabilidade futura. As regras ficam no banco: taxa só em aporte de renda fixa, ticker
+só em aporte de Ações/FIIs/Cripto e sempre com o preço de compra.
 
 ## Deploy (Vercel)
 

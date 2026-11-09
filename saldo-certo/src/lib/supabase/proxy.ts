@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/env";
 
-const PUBLIC_PATHS = ["/login", "/cadastro", "/esqueci-senha", "/auth", "/api/mercado-diagnostico"];
+const PUBLIC_PATHS = ["/login", "/cadastro", "/esqueci-senha", "/auth"];
 const AUTH_PAGES = ["/login", "/cadastro", "/esqueci-senha"];
 
 function startsWithAny(pathname: string, paths: string[]) {
