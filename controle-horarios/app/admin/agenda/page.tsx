@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarDays, HardHat } from "lucide-react";
+import { CalendarDays, CheckCircle2, HardHat } from "lucide-react";
 import { CalendarioAgenda } from "./CalendarioAgenda";
 import { PainelObras } from "./PainelObras";
+import { ListaConcluidos } from "./ListaConcluidos";
 import { classesBotao } from "@/components/ui/estilos";
 import { IndicadorLink } from "@/components/ui/IndicadorLink";
 import type { DiaObra, Obra } from "@/lib/obras";
@@ -19,8 +20,9 @@ export default async function PaginaAgenda({ searchParams }: { searchParams: Pro
   await exigirGestorAgenda();
   const p = await searchParams;
   const hoje = hojeSP();
-  const aba = p.aba === "andamento" ? "andamento" : "calendario";
+  const aba = p.aba === "andamento" ? "andamento" : p.aba === "concluidos" ? "concluidos" : "calendario";
   if (aba === "andamento") return <AbaAndamento hoje={hoje} />;
+  if (aba === "concluidos") return <AbaConcluidos hoje={hoje} />;
   const pedido = String(Array.isArray(p.mes) ? p.mes[0] : p.mes ?? "");
   const mes = /^\d{4}-(0[1-9]|1[0-2])$/.test(pedido) ? `${pedido}-01` : `${hoje.slice(0, 7)}-01`;
   const ano = mes.slice(0, 4);
@@ -67,7 +69,7 @@ function Titulo({ texto }: { texto: string }) {
   );
 }
 
-function AbasAgenda({ aba }: { aba: "calendario" | "andamento" }) {
+function AbasAgenda({ aba }: { aba: "calendario" | "andamento" | "concluidos" }) {
   const item = (alvo: typeof aba, href: string, icone: React.ReactNode, rotulo: string) => (
     <Link href={href} aria-current={aba === alvo ? "page" : undefined}
       className={classesBotao(aba === alvo ? "primario" : "secundario", "md", "min-w-0 flex-1 px-3 sm:flex-none sm:px-4")}>
@@ -75,9 +77,10 @@ function AbasAgenda({ aba }: { aba: "calendario" | "andamento" }) {
     </Link>
   );
   return (
-    <nav aria-label="Partes da aba Agenda" className="flex gap-2">
+    <nav aria-label="Partes da aba Agenda" className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {item("calendario", "/admin/agenda", <CalendarDays className="size-4" aria-hidden />, "Calendário")}
       {item("andamento", "/admin/agenda?aba=andamento", <HardHat className="size-4" aria-hidden />, "Serviços em andamento")}
+      {item("concluidos", "/admin/agenda?aba=concluidos", <CheckCircle2 className="size-4" aria-hidden />, "Serviços concluídos")}
     </nav>
   );
 }
@@ -86,7 +89,7 @@ function AbasAgenda({ aba }: { aba: "calendario" | "andamento" }) {
 async function AbaAndamento({ hoje }: { hoje: string }) {
   const supabase = await criarClienteServidor();
   const [{ data: obras }, { data: dias }, { data: pessoas }, { data: clientes }] = await Promise.all([
-    supabase.from("obras").select("*").order("criado_em", { ascending: false }),
+    supabase.from("obras").select("*").eq("status", "andamento").order("criado_em", { ascending: false }),
     supabase.from("agendamentos").select("id, obra_id, data, colaborador_id, status").not("obra_id", "is", null).order("data"),
     supabase.from("profiles").select("id, nome").eq("ativo", true).order("nome"),
     supabase.from("clientes").select("id, nome, endereco, telefone, observacoes").order("nome"),
@@ -96,6 +99,34 @@ async function AbaAndamento({ hoje }: { hoje: string }) {
       <Titulo texto="Obras e serviços que duram vários dias. Escolha os dias e os eletricistas: cada dia entra na agenda e aparece na hora para o eletricista." />
       <AbasAgenda aba="andamento" />
       <PainelObras obras={(obras ?? []) as Obra[]} dias={(dias ?? []) as DiaObra[]} colaboradores={(pessoas ?? []) as { id: string; nome: string }[]} clientes={(clientes ?? []) as Cliente[]} hoje={hoje} />
+    </div>
+  );
+}
+
+/** Serviços concluídos: obras encerradas e serviços da agenda marcados como concluídos. */
+async function AbaConcluidos({ hoje }: { hoje: string }) {
+  const supabase = await criarClienteServidor();
+  const [{ data: obras }, { data: dias }, { data: avulsos }, { data: pessoas }, { data: clientes }] = await Promise.all([
+    supabase.from("obras").select("*").eq("status", "concluida").order("atualizado_em", { ascending: false }),
+    supabase.from("agendamentos").select("id, obra_id, data, colaborador_id, status").not("obra_id", "is", null).order("data"),
+    supabase.from("agendamentos").select("*").eq("status", "concluido").is("obra_id", null).order("data", { ascending: false }).limit(1000),
+    supabase.from("profiles").select("id, nome").order("nome"),
+    supabase.from("clientes").select("id, nome, endereco, telefone, observacoes").order("nome"),
+  ]);
+  const colaboradores = (pessoas ?? []) as { id: string; nome: string }[];
+  const listaObras = (obras ?? []) as Obra[];
+  return (
+    <div className="space-y-5">
+      <Titulo texto="Tudo o que já foi concluído: os serviços da agenda e as obras encerradas. Se precisar, reabra para voltar à agenda." />
+      <AbasAgenda aba="concluidos" />
+      <ListaConcluidos agendamentos={(avulsos ?? []) as Agendamento[]} colaboradores={colaboradores} />
+      {listaObras.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-bold text-slate-900">Obras concluídas</h2>
+          <PainelObras modo="concluidos" obras={listaObras} dias={((dias ?? []) as DiaObra[]).filter((d) => listaObras.some((o) => o.id === d.obra_id))}
+            colaboradores={colaboradores} clientes={(clientes ?? []) as Cliente[]} hoje={hoje} />
+        </section>
+      )}
     </div>
   );
 }

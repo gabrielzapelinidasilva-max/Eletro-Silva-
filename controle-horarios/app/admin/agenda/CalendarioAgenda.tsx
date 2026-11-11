@@ -2,8 +2,8 @@
 
 import { useActionState, useState, useTransition } from "react";
 import Link from "next/link";
-import { CalendarDays, ChevronLeft, HardHat, Repeat, ChevronRight, MapPin, MoveRight, Pencil, Phone, Plus, Save, Trash2, User } from "lucide-react";
-import { excluirAgendamento, moverAgendamento, salvarAgendamento } from "./actions";
+import { CalendarDays, CheckCircle2, ChevronLeft, HardHat, Repeat, ChevronRight, MapPin, MoveRight, Pencil, Phone, Plus, Save, Trash2, User } from "lucide-react";
+import { alterarStatusAgendamentos, excluirAgendamento, moverAgendamento, salvarAgendamento } from "./actions";
 import { Modal } from "@/components/ui/Modal";
 import { Botao, BotaoEnviar } from "@/components/ui/Botao";
 import { AreaTexto, Campo, Selecao } from "@/components/ui/Campo";
@@ -57,6 +57,14 @@ export function CalendarioAgenda({ mes, hoje, inicioGrade, fimGrade, agendamento
   const doDia = (d: string) => agendamentos.filter((a) => a.data === d);
   const doMes = agendamentos.filter((a) => a.data.slice(0, 7) === mes.slice(0, 7));
   const ano = mes.slice(0, 4);
+
+  function concluir(item: Agendamento) {
+    fechar();
+    iniciar(async () => {
+      const r = await alterarStatusAgendamentos([item.id], item.status === "concluido" ? "agendado" : "concluido");
+      toast(r.ok ? "sucesso" : "erro", r.mensagem);
+    });
+  }
 
   function mover(id: string, data: string) {
     const item = agendamentos.find((a) => a.id === id);
@@ -196,6 +204,11 @@ export function CalendarioAgenda({ mes, hoje, inicioGrade, fimGrade, agendamento
               <div className="flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-3">
                 <Botao variante="perigoSuave" onClick={() => setJanela({ tipo: "excluir", item: a })}><Trash2 className="size-4" aria-hidden /> Excluir</Botao>
                 <Botao variante="secundario" onClick={() => setJanela({ tipo: "mover", item: a })}><MoveRight className="size-4" aria-hidden /> Mover</Botao>
+                {a.status !== "cancelado" && (
+                  <Botao variante={a.status === "concluido" ? "secundario" : "sucessoSuave"} onClick={() => concluir(a)}>
+                    <CheckCircle2 className="size-4" aria-hidden /> {a.status === "concluido" ? "Reabrir" : "Concluir"}
+                  </Botao>
+                )}
                 <Botao onClick={() => setJanela({ tipo: "editar", item: a })}><Pencil className="size-4" aria-hidden /> Editar</Botao>
               </div>
             </div>

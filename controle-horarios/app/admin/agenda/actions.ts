@@ -92,3 +92,15 @@ export async function excluirAgendamento(_a: Resultado, form: FormData): Promise
   atualizar();
   return sucesso(data.length > 1 ? `${data.length} agendamentos excluídos.` : "Agendamento excluído.");
 }
+
+/** Concluir ou reabrir agendamentos (botão "Concluir" no calendário e "Reabrir" em Serviços concluídos). */
+export async function alterarStatusAgendamentos(ids: string[], status: "agendado" | "concluido"): Promise<Resultado> {
+  await exigirGestorAgenda();
+  const validos = ids.filter((i) => /^[0-9a-f-]{36}$/i.test(i)).slice(0, 500);
+  if (!validos.length || !["agendado", "concluido"].includes(status)) return falha("Nada para alterar.");
+  const supabase = await criarClienteServidor();
+  const { data, error } = await supabase.from("agendamentos").update({ status }).in("id", validos).select("cliente");
+  if (error || !data?.length) return falha("Não foi possível alterar. Tente novamente.");
+  atualizar();
+  return sucesso(status === "concluido" ? `${data[0].cliente} foi para Serviços concluídos.` : `${data[0].cliente} voltou para a agenda.`);
+}

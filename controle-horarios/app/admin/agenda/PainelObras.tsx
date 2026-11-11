@@ -20,34 +20,31 @@ import { RESULTADO_INICIAL } from "@/lib/tipos";
 type Pessoa = { id: string; nome: string };
 type Janela = { tipo: "nova" } | { tipo: "editar" | "dias" | "excluir"; obra: Obra } | null;
 
-export function PainelObras({ obras, dias, colaboradores, clientes, hoje }: { obras: Obra[]; dias: DiaObra[]; colaboradores: Pessoa[]; clientes: Cliente[]; hoje: string }) {
+type PropsPainel = { obras: Obra[]; dias: DiaObra[]; colaboradores: Pessoa[]; clientes: Cliente[]; hoje: string; modo?: "andamento" | "concluidos" };
+
+/** modo "andamento": aba Serviços em andamento. modo "concluidos": as obras encerradas (aba Serviços concluídos). */
+export function PainelObras({ obras, dias, colaboradores, clientes, hoje, modo = "andamento" }: PropsPainel) {
   const [janela, setJanela] = useState<Janela>(null);
-  const [verConcluidas, setVerConcluidas] = useState(false);
   const fechar = () => setJanela(null);
   // Fica aqui (e não no cartão): ao concluir, o cartão sai da lista e o aviso não se perderia.
   const [estadoStatus, enviarStatus] = useActionState(alterarStatusObra, RESULTADO_INICIAL);
   useToastDoResultado(estadoStatus);
-  const lista = obras.filter((o) => (verConcluidas ? o.status === "concluida" : o.status === "andamento"));
-  const concluidas = obras.filter((o) => o.status === "concluida").length;
+  const concluidos = modo === "concluidos";
+  const lista = obras.filter((o) => (concluidos ? o.status === "concluida" : o.status === "andamento"));
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex gap-1 rounded-xl bg-slate-100 p-1">
-          {[false, true].map((c) => (
-            <button key={String(c)} type="button" onClick={() => setVerConcluidas(c)} aria-pressed={verConcluidas === c}
-              className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${verConcluidas === c ? "bg-white text-marca-700 shadow-sm ring-1 ring-slate-200" : "text-slate-500"}`}>
-              {c ? `Concluídos (${concluidas})` : `Em andamento (${obras.length - concluidas})`}
-            </button>
-          ))}
+      {!concluidos && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-slate-500">{lista.length} {lista.length === 1 ? "serviço em andamento" : "serviços em andamento"}</p>
+          <Botao onClick={() => setJanela({ tipo: "nova" })}><Plus className="size-4" aria-hidden /> Novo serviço em andamento</Botao>
         </div>
-        <Botao onClick={() => setJanela({ tipo: "nova" })}><Plus className="size-4" aria-hidden /> Novo serviço em andamento</Botao>
-      </div>
+      )}
 
       {lista.length === 0 ? (
         <EstadoVazio
-          titulo={verConcluidas ? "Nenhum serviço concluído" : "Nenhum serviço em andamento"}
-          texto={verConcluidas ? undefined : "Cadastre uma obra que dura vários dias, escolha os dias (ex.: segunda a sexta) e os eletricistas. Cada dia aparece na agenda e na tela do eletricista."}
+          titulo={concluidos ? "Nenhuma obra concluída" : "Nenhum serviço em andamento"}
+          texto={concluidos ? undefined : "Cadastre uma obra que dura vários dias, escolha os dias (ex.: segunda a sexta) e os eletricistas. Cada dia aparece na agenda e na tela do eletricista."}
         />
       ) : (
         <ul className="grid gap-3 lg:grid-cols-2">
