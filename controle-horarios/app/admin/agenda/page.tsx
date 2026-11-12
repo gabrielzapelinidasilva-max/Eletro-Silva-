@@ -33,8 +33,9 @@ export default async function PaginaAgenda({ searchParams }: { searchParams: Pro
 
   const supabase = await criarClienteServidor();
   const [{ data: itens }, { data: doAno }, { data: pessoas }, { data: clientes }] = await Promise.all([
-    supabase.from("agendamentos").select("*").gte("data", inicioGrade).lte("data", fimGrade).order("data").order("hora", { nullsFirst: false }),
-    supabase.from("agendamentos").select("data").gte("data", `${ano}-01-01`).lte("data", `${ano}-12-31`).neq("status", "cancelado"),
+    // Os concluídos saem do calendário: ficam só na aba Serviços concluídos.
+    supabase.from("agendamentos").select("*").gte("data", inicioGrade).lte("data", fimGrade).neq("status", "concluido").order("data").order("hora", { nullsFirst: false }),
+    supabase.from("agendamentos").select("data").gte("data", `${ano}-01-01`).lte("data", `${ano}-12-31`).eq("status", "agendado"),
     supabase.from("profiles").select("id, nome").eq("ativo", true).order("nome"),
     supabase.from("clientes").select("id, nome, endereco, telefone, observacoes").order("nome"),
   ]);

@@ -61,7 +61,7 @@ export function CalendarioAgenda({ mes, hoje, inicioGrade, fimGrade, agendamento
   function concluir(item: Agendamento) {
     fechar();
     iniciar(async () => {
-      const r = await alterarStatusAgendamentos([item.id], item.status === "concluido" ? "agendado" : "concluido");
+      const r = await alterarStatusAgendamentos([item.id], "concluido");
       toast(r.ok ? "sucesso" : "erro", r.mensagem);
     });
   }
@@ -204,9 +204,9 @@ export function CalendarioAgenda({ mes, hoje, inicioGrade, fimGrade, agendamento
               <div className="flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-3">
                 <Botao variante="perigoSuave" onClick={() => setJanela({ tipo: "excluir", item: a })}><Trash2 className="size-4" aria-hidden /> Excluir</Botao>
                 <Botao variante="secundario" onClick={() => setJanela({ tipo: "mover", item: a })}><MoveRight className="size-4" aria-hidden /> Mover</Botao>
-                {a.status !== "cancelado" && (
-                  <Botao variante={a.status === "concluido" ? "secundario" : "sucessoSuave"} onClick={() => concluir(a)}>
-                    <CheckCircle2 className="size-4" aria-hidden /> {a.status === "concluido" ? "Reabrir" : "Concluir"}
+                {a.status === "agendado" && (
+                  <Botao variante="sucessoSuave" onClick={() => concluir(a)}>
+                    <CheckCircle2 className="size-4" aria-hidden /> Concluir
                   </Botao>
                 )}
                 <Botao onClick={() => setJanela({ tipo: "editar", item: a })}><Pencil className="size-4" aria-hidden /> Editar</Botao>
