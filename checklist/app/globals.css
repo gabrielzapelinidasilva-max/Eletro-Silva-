@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primaria: #1e46e6;
+  --color-primaria-escura: #1636b8;
+  --color-primaria-clara: #e8edfd;
+  --color-bege: #dbd8af;
+  --color-bege-claro: #f5f4ea;
+  --color-bege-escuro: #a8a477;
+  --color-tinta: #1b1f2e;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  background: var(--color-bege-claro);
+  color: var(--color-tinta);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Componentes reutilizáveis */
+@utility cartao {
+    @apply rounded-2xl border border-black/5 bg-white shadow-sm;
+}
+
+@utility campo {
+    @apply w-full rounded-xl border border-black/10 bg-white px-3.5 py-2.5 text-base outline-none transition
+      placeholder:text-black/35 focus:border-primaria focus:ring-4 focus:ring-primaria/15;
+}
+
+@utility rotulo {
+    @apply mb-1.5 block text-sm font-medium text-black/70;
+}
+
+@utility btn {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition
+      active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+@utility btn-primario {
+    @apply btn bg-primaria text-white shadow-sm hover:bg-primaria-escura;
+}
+
+@utility btn-secundario {
+    @apply btn border border-black/10 bg-white text-tinta hover:bg-black/[0.03];
+}
+
+@utility btn-perigo {
+    @apply btn bg-red-600 text-white hover:bg-red-700;
+}
+
+@utility btn-fantasma {
+    @apply btn text-black/65 hover:bg-black/5;
+}
+
+@utility chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+}
+
