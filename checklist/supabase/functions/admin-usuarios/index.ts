@@ -23,6 +23,16 @@ const erro = (mensagem: string, status = 400) => resposta({ erro: mensagem }, st
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Link que aponta direto para o site (/auth/confirmar?token_hash=...), sem depender
+// da lista de Redirect URLs do Auth. O site valida o token com verifyOtp.
+function linkDireto(redirectTo: string | undefined, hashed: string | undefined, tipo: "invite" | "recovery", reserva: string) {
+  if (!redirectTo || !hashed) return reserva;
+  const u = new URL(redirectTo);
+  u.searchParams.set("token_hash", hashed);
+  u.searchParams.set("type", tipo);
+  return u.toString();
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return erro("Método não permitido.", 405);
@@ -127,7 +137,7 @@ Deno.serve(async (req) => {
         ok: true,
         emailEnviado: false,
         aviso: erroEmail.message,
-        link: link.properties.action_link,
+        link: linkDireto(redirectTo, link.properties.hashed_token, "invite", link.properties.action_link),
       });
     }
 
@@ -143,7 +153,10 @@ Deno.serve(async (req) => {
         options: { redirectTo },
       });
       if (error || !link?.properties?.action_link) return erro(error?.message ?? "Falha ao gerar link.", 500);
-      return resposta({ ok: true, link: link.properties.action_link });
+      return resposta({
+        ok: true,
+        link: linkDireto(redirectTo, link.properties.hashed_token, "recovery", link.properties.action_link),
+      });
     }
 
     // ---------------------------------------------------------------
