@@ -19,8 +19,6 @@ type Equipamento = {
 
 type Grupo = { chave: string; nome: string; pessoaId: string | null; itens: Equipamento[] };
 
-const OUTRA = "__outra__";
-
 export function TelaEquipamentos({ admin }: { admin: boolean }) {
   const supabase = useMemo(() => criarClienteNavegador(), []);
   const { equipe, nomeDe } = useEquipe();
@@ -178,6 +176,9 @@ export function TelaEquipamentos({ admin }: { admin: boolean }) {
   );
 }
 
+type Linha = { item: string; quantidade: string; observacao: string };
+const linhaVazia = (): Linha => ({ item: "", quantidade: "1", observacao: "" });
+
 function ModalEquipamento({ estado, aoFechar, equipe, nomesLivres, aoSalvar }: {
   estado: { editar?: Equipamento; pessoa?: { id: string | null; nome: string } } | null;
   aoFechar: () => void;
@@ -186,43 +187,55 @@ function ModalEquipamento({ estado, aoFechar, equipe, nomesLivres, aoSalvar }: {
   aoSalvar: () => void;
 }) {
   const supabase = useMemo(() => criarClienteNavegador(), []);
-  const [pessoa, setPessoa] = useState("");
-  const [nomeLivre, setNomeLivre] = useState("");
-  const [item, setItem] = useState("");
-  const [quantidade, setQuantidade] = useState("1");
-  const [observacao, setObservacao] = useState("");
+  const [nome, setNome] = useState("");
+  const [linhas, setLinhas] = useState<Linha[]>([linhaVazia()]);
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
+  const editando = !!estado?.editar;
 
   useEffect(() => {
     if (!estado) return;
     const e = estado.editar;
-    const p = e ? { id: e.pessoa_id, nome: e.pessoa_nome ?? "" } : estado.pessoa;
-    setPessoa(p ? (p.id ?? OUTRA) : "");
-    setNomeLivre(p && !p.id ? p.nome : "");
-    setItem(e?.item ?? "");
-    setQuantidade(String(e?.quantidade ?? 1));
-    setObservacao(e?.observacao ?? "");
+    if (e) {
+      setNome(e.pessoa_id ? (equipe.find((p) => p.id === e.pessoa_id)?.nome ?? "") : (e.pessoa_nome ?? ""));
+      setLinhas([{ item: e.item, quantidade: String(e.quantidade), observacao: e.observacao ?? "" }]);
+    } else {
+      setNome(estado.pessoa?.nome ?? "");
+      setLinhas([linhaVazia()]);
+    }
     setErro("");
-  }, [estado]);
+  }, [estado, equipe]);
+
+  // Sugestões: quem tem cadastro + nomes já usados
+  const sugestoes = useMemo(
+    () => [...new Set([...equipe.filter((p) => p.ativo).map((p) => p.nome), ...nomesLivres])].sort((a, b) => a.localeCompare(b, "pt-BR")),
+    [equipe, nomesLivres],
+  );
+  const cadastrado = equipe.find((p) => p.ativo && p.nome.trim().toLowerCase() === nome.trim().toLowerCase());
+
+  const mudar = (idx: number, campo: keyof Linha, valor: string) =>
+    setLinhas((l) => l.map((x, i) => (i === idx ? { ...x, [campo]: valor } : x)));
 
   async function salvar(ev: React.FormEvent) {
     ev.preventDefault();
     setErro("");
-    if (!pessoa) return setErro("Escolha a pessoa.");
-    if (pessoa === OUTRA && !nomeLivre.trim()) return setErro("Digite o nome da pessoa.");
-    const qtd = Number.parseInt(quantidade, 10);
-    if (!Number.isFinite(qtd) || qtd < 0) return setErro("Quantidade inválida.");
-    const dados = {
-      pessoa_id: pessoa === OUTRA ? null : pessoa,
-      pessoa_nome: pessoa === OUTRA ? nomeLivre.trim() : null,
-      item: item.trim(),
-      quantidade: qtd,
-      observacao: observacao.trim() || null,
-    };
+    if (!nome.trim()) return setErro("Digite o nome da pessoa.");
+    const preenchidas = linhas.filter((l) => l.item.trim());
+    if (preenchidas.length === 0) return setErro("Preencha pelo menos um item.");
+    for (const l of preenchidas) {
+      const q = Number.parseInt(l.quantidade, 10);
+      if (!Number.isFinite(q) || q < 0) return setErro(`Quantidade inválida em "${l.item}".`);
+    }
+    const pessoa = cadastrado ? { pessoa_id: cadastrado.id, pessoa_nome: null } : { pessoa_id: null, pessoa_nome: nome.trim() };
+    const dados = preenchidas.map((l) => ({
+      ...pessoa,
+      item: l.item.trim(),
+      quantidade: Number.parseInt(l.quantidade, 10),
+      observacao: l.observacao.trim() || null,
+    }));
     setSalvando(true);
     const { error } = estado?.editar
-      ? await supabase.from("equipamentos").update(dados).eq("id", estado.editar.id)
+      ? await supabase.from("equipamentos").update(dados[0]).eq("id", estado.editar.id)
       : await supabase.from("equipamentos").insert(dados);
     setSalvando(false);
     if (error) return setErro(mensagemErro(error));
@@ -231,37 +244,55 @@ function ModalEquipamento({ estado, aoFechar, equipe, nomesLivres, aoSalvar }: {
   }
 
   return (
-    <Modal aberto={!!estado} aoFechar={aoFechar} titulo={estado?.editar ? "Editar equipamento" : "Adicionar equipamento"}>
+    <Modal aberto={!!estado} aoFechar={aoFechar} titulo={editando ? "Editar equipamento" : "Adicionar equipamentos"}>
       <form onSubmit={salvar} className="space-y-4">
         <div>
-          <label className="rotulo" htmlFor="eq-pessoa">Com quem está</label>
-          <select id="eq-pessoa" className="campo" value={pessoa} onChange={(e) => setPessoa(e.target.value)} required>
-            <option value="">Escolha…</option>
-            {equipe.filter((p) => p.ativo).map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
-            <option value={OUTRA}>Outra pessoa (digitar nome)</option>
-          </select>
+          <label className="rotulo" htmlFor="eq-nome">Pessoa</label>
+          <input id="eq-nome" className="campo" list="eq-sugestoes" autoComplete="off" required value={nome}
+                 onChange={(e) => setNome(e.target.value)} placeholder="Digite o nome (ex.: Gabriel)" />
+          <datalist id="eq-sugestoes">{sugestoes.map((n) => <option key={n} value={n} />)}</datalist>
+          <p className="mt-1.5 text-xs text-black/50">
+            {nome.trim()
+              ? cadastrado
+                ? "Pessoa cadastrada: ela também verá esses itens quando entrar no site."
+                : "Nome livre: não precisa ter cadastro."
+              : "Pode ser qualquer nome, com ou sem cadastro."}
+          </p>
         </div>
-        {pessoa === OUTRA && (
-          <div>
-            <label className="rotulo" htmlFor="eq-nome">Nome da pessoa</label>
-            <input id="eq-nome" className="campo" list="eq-nomes" value={nomeLivre} onChange={(e) => setNomeLivre(e.target.value)} placeholder="Ex.: Gabriel" />
-            <datalist id="eq-nomes">{nomesLivres.map((n) => <option key={n} value={n} />)}</datalist>
-          </div>
-        )}
-        <div className="grid grid-cols-[1fr_6rem] gap-3">
-          <div>
-            <label className="rotulo" htmlFor="eq-item">Equipamento</label>
-            <input id="eq-item" className="campo" required value={item} onChange={(e) => setItem(e.target.value)} placeholder="Ex.: Ferramentas, Carros" />
-          </div>
-          <div>
-            <label className="rotulo" htmlFor="eq-qtd">Quantidade</label>
-            <input id="eq-qtd" className="campo text-center" type="number" inputMode="numeric" min={0} required value={quantidade} onChange={(e) => setQuantidade(e.target.value)} />
-          </div>
+
+        <div className="space-y-3">
+          <span className="rotulo">{editando ? "Equipamento" : "Equipamentos"}</span>
+          {linhas.map((l, idx) => (
+            <div key={idx} className="space-y-2 rounded-xl border border-black/10 bg-bege-claro/60 p-3">
+              <div className="grid grid-cols-[1fr_5.5rem_auto] items-end gap-2">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-black/60" htmlFor={`eq-item-${idx}`}>Item</label>
+                  <input id={`eq-item-${idx}`} className="campo" value={l.item} onChange={(e) => mudar(idx, "item", e.target.value)}
+                         placeholder="Ex.: Ferramentas" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-black/60" htmlFor={`eq-qtd-${idx}`}>Qtd.</label>
+                  <input id={`eq-qtd-${idx}`} className="campo text-center" type="number" inputMode="numeric" min={0}
+                         value={l.quantidade} onChange={(e) => mudar(idx, "quantidade", e.target.value)} />
+                </div>
+                {linhas.length > 1 ? (
+                  <button type="button" className="btn-fantasma min-h-11 px-2 text-red-600" aria-label={`Remover linha ${idx + 1}`}
+                          onClick={() => setLinhas((x) => x.filter((_, i) => i !== idx))}>
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                ) : <span className="w-2" />}
+              </div>
+              <input className="campo py-2 text-sm" value={l.observacao} onChange={(e) => mudar(idx, "observacao", e.target.value)}
+                     placeholder="Observação (opcional), ex.: placa ABC-1234" aria-label={`Observação do item ${idx + 1}`} />
+            </div>
+          ))}
+          {!editando && (
+            <button type="button" className="btn-secundario w-full border-dashed" onClick={() => setLinhas((x) => [...x, linhaVazia()])}>
+              <Plus className="h-4 w-4" /> Outro item
+            </button>
+          )}
         </div>
-        <div>
-          <label className="rotulo" htmlFor="eq-obs">Observação (opcional)</label>
-          <input id="eq-obs" className="campo" value={observacao} onChange={(e) => setObservacao(e.target.value)} placeholder="Ex.: placa ABC-1234" />
-        </div>
+
         <Aviso>{erro}</Aviso>
         <div className="flex justify-end gap-2">
           <button type="button" className="btn-secundario" onClick={aoFechar}>Cancelar</button>
