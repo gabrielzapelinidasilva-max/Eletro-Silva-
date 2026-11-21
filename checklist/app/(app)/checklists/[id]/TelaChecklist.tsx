@@ -350,11 +350,15 @@ function ModalEditar({ aberto, aoFechar, checklist, membros, equipe, aoSalvar }:
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
 
+  // Preenche só quando o formulário abre (atualizações em tempo real não apagam o que está sendo editado)
+  const atual = useRef({ checklist, membros });
+  atual.current = { checklist, membros };
   useEffect(() => {
     if (aberto) {
-      setTitulo(checklist.titulo); setDescricao(checklist.descricao ?? ""); setPrazo(checklist.prazo ?? ""); setSel(membros); setErro("");
+      const { checklist: c, membros: m } = atual.current;
+      setTitulo(c.titulo); setDescricao(c.descricao ?? ""); setPrazo(c.prazo ?? ""); setSel(m); setErro("");
     }
-  }, [aberto, checklist, membros]);
+  }, [aberto]);
 
   async function salvar(e: React.FormEvent) {
     e.preventDefault();

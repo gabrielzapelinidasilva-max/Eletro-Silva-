@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { Avatar, Aviso, Modal, Vazio } from "@/components/ui";
 import { useEquipe } from "@/lib/hooks/useEquipe";
@@ -193,18 +193,22 @@ function ModalEquipamento({ estado, aoFechar, equipe, nomesLivres, aoSalvar }: {
   const [salvando, setSalvando] = useState(false);
   const editando = !!estado?.editar;
 
+  // Preenche o formulário só quando ele abre (não quando a lista da equipe termina de carregar,
+  // senão apagaria o que a pessoa já está digitando).
+  const equipeRef = useRef(equipe);
+  equipeRef.current = equipe;
   useEffect(() => {
     if (!estado) return;
     const e = estado.editar;
     if (e) {
-      setNome(e.pessoa_id ? (equipe.find((p) => p.id === e.pessoa_id)?.nome ?? "") : (e.pessoa_nome ?? ""));
+      setNome(e.pessoa_id ? (equipeRef.current.find((p) => p.id === e.pessoa_id)?.nome ?? "") : (e.pessoa_nome ?? ""));
       setLinhas([{ item: e.item, quantidade: String(e.quantidade), observacao: e.observacao ?? "" }]);
     } else {
       setNome(estado.pessoa?.nome ?? "");
       setLinhas([linhaVazia()]);
     }
     setErro("");
-  }, [estado, equipe]);
+  }, [estado]);
 
   // Sugestões: quem tem cadastro + nomes já usados
   const sugestoes = useMemo(
