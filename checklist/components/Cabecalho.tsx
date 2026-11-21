@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ClipboardList, LayoutTemplate, LogOut, Users } from "lucide-react";
+import { ClipboardList, LayoutTemplate, LogOut, Package, Users } from "lucide-react";
 import { Logo } from "./Logo";
 import { criarClienteNavegador } from "@/lib/supabase/client";
 import { cx } from "@/lib/utils";
@@ -13,6 +13,7 @@ export function Cabecalho({ nome, admin }: { nome: string; admin: boolean }) {
 
   const links = [
     { href: "/", rotulo: "Checklists", icone: ClipboardList, ativo: pathname === "/" || pathname.startsWith("/checklists") },
+    { href: "/equipamentos", rotulo: "Equipamentos", icone: Package, ativo: pathname.startsWith("/equipamentos") },
     ...(admin
       ? [
           { href: "/admin/modelos", rotulo: "Modelos", icone: LayoutTemplate, ativo: pathname.startsWith("/admin/modelos") },
